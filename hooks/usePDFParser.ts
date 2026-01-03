@@ -5,15 +5,19 @@ import { toast } from 'sonner';
 
 // Dynamic import for pdfjs-dist to avoid SSR issues
 let pdfjsLib: typeof import('pdfjs-dist') | null = null;
+let workerInitialized = false;
 
 const initPDFJS = async () => {
   if (typeof window === 'undefined') return null;
-  if (pdfjsLib) return pdfjsLib;
+  if (pdfjsLib && workerInitialized) return pdfjsLib;
   
   pdfjsLib = await import('pdfjs-dist');
   
   // Use unpkg CDN with https for reliable worker loading
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+  if (!workerInitialized) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+    workerInitialized = true;
+  }
   
   return pdfjsLib;
 };
@@ -67,6 +71,8 @@ export const usePDFParser = () => {
 
   const renderPageToCanvas = async (page: any, pageNumber: number): Promise<PDFPage> => {
     const viewport = page.getViewport({ scale: RENDER_SCALE });
+    
+    // Create a new canvas element
     const canvas = window.document.createElement('canvas');
     const context = canvas.getContext('2d');
 
@@ -74,6 +80,7 @@ export const usePDFParser = () => {
       throw new Error('Could not get canvas context');
     }
 
+    // Set canvas dimensions
     canvas.width = viewport.width;
     canvas.height = viewport.height;
 
@@ -82,7 +89,11 @@ export const usePDFParser = () => {
       viewport: viewport,
     };
 
+    // Render the page
     await page.render(renderContext).promise;
+
+    // Convert canvas to data URL for reliable storage
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
 
     // Extract text and notes in parallel
     const [textContent, notes] = await Promise.all([
@@ -93,6 +104,7 @@ export const usePDFParser = () => {
     return {
       pageNumber,
       canvas,
+      dataUrl,
       textContent,
       notes,
       width: viewport.width,
@@ -119,7 +131,11 @@ export const usePDFParser = () => {
 
       // Load PDF document
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+      const loadingTask = pdfjs.getDocument({ 
+        data: arrayBuffer,
+        cMapUrl: 'https://unpkg.com/pdfjs-dist@' + pdfjs.version + '/cmaps/',
+        cMapPacked: true,
+      });
       const pdfDoc = await loadingTask.promise;
 
       const totalPages = pdfDoc.numPages;

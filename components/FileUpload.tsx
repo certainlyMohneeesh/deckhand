@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useState, useRef } from 'react';
-import { Upload, File, X, CheckCircle2 } from 'lucide-react';
+import { Upload, File, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,7 +13,10 @@ interface FileUploadProps {
   className?: string;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, className }) => {
+export const FileUpload: React.FC<FileUploadProps> = ({ 
+  onFileUpload, 
+  className 
+}) => {
   const { file, progress, isUploading, error, uploadFile, clearFile } = useFileUpload();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,70 +118,72 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, className 
                 </p>
               </div>
 
-              <Button
-                onClick={handleBrowseClick}
-                variant="default"
-                size="lg"
-                disabled={isUploading}
-                className="mt-4"
-              >
-                Browse Files
-              </Button>
-
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.pptx"
-                onChange={handleFileSelect}
+                accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                 className="hidden"
+                onChange={handleFileSelect}
               />
 
-              {error && (
-                <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                  {error}
-                </div>
-              )}
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleBrowseClick}
+                disabled={isUploading}
+              >
+                Browse Files
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  <div className="rounded-lg bg-primary/10 p-3">
-                    <File className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.size)} • {file.type.includes('pdf') ? 'PDF' : 'PPTX'}
-                    </p>
-                  </div>
+              <div className="flex items-center space-x-4">
+                <div className="rounded-lg bg-primary/10 p-3">
+                  <File className="h-8 w-8 text-primary" />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleRemoveFile}
-                  disabled={isUploading}
-                  className="shrink-0 ml-2"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatFileSize(file.size)}
+                  </p>
+                </div>
+                {!isUploading && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRemoveFile}
+                    className="shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
+              {/* Progress indicator */}
               {isUploading && (
                 <div className="space-y-2">
                   <Progress value={progress.percentage} className="h-2" />
-                  <p className="text-xs text-muted-foreground text-center">
-                    Uploading... {progress.percentage}%
+                  <p className="text-sm text-muted-foreground text-center">
+                    Processing... {progress.percentage}%
                   </p>
                 </div>
               )}
 
-              {!isUploading && (
-                <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-500">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>File uploaded successfully</span>
+              {/* Success state */}
+              {!isUploading && !error && (
+                <div className="flex items-center justify-center space-x-2 text-green-500">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="text-sm font-medium">Ready to present</span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Error state */}
+          {error && (
+            <div className="mt-4 flex items-center justify-center space-x-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              <span className="text-sm">{error}</span>
             </div>
           )}
         </CardContent>

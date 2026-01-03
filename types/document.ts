@@ -2,6 +2,7 @@
 export interface PDFPage {
   pageNumber: number;
   canvas: HTMLCanvasElement;
+  dataUrl: string;
   textContent: string;
   notes: string;
   width: number;

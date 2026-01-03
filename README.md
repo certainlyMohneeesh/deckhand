@@ -1,6 +1,14 @@
 # DeckHand - Smart Presentation Control 🎯
 
-A modern web application that transforms your phone into a powerful remote control for presentations. Upload your slides (PDF/PPTX), scan a QR code, and control everything from your mobile device.
+A modern web application for viewing and controlling presentations. **100% client-side processing** - works on any device (Linux, Windows, macOS, Android, iOS) without installation or server dependencies. Your files never leave your device.
+
+## ✨ Key Features
+
+- **Universal Compatibility**: Runs in any modern browser - works everywhere
+- **Pure Client-Side**: All PDF/PPTX processing happens locally in the browser
+- **Privacy-First**: Your files never leave your device - no upload to servers
+- **Offline Support**: Once loaded, works without internet connection
+- **Remote Control**: Control your presentation from your phone with QR code pairing
 
 ## ✅ Phase 1 & Phase 2 Complete
 

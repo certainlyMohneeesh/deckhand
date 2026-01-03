@@ -1,34 +1,48 @@
 'use client';
 
 import { FileUpload } from '@/components/FileUpload';
-import { UnifiedPlayer } from '@/components/UnifiedPlayer';
+import { PresentationPlayer } from '@/components/PresentationPlayer';
+import { useSlideRenderer } from '@/hooks/useSlideRenderer';
 import { FileMetadata } from '@/types/file';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, Loader2, Download, Smartphone, Zap, Globe } from 'lucide-react';
 
 export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<FileMetadata | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentSlide, setCurrentSlide] = useState(1);
+  const { slides, isLoading, error, progress, renderPDF, renderPPTX, reset } = useSlideRenderer();
 
-  const handleFileUpload = (file: FileMetadata) => {
+  const handleFileUpload = async (file: FileMetadata) => {
     setUploadedFile(file);
-    console.log('File uploaded:', file);
+    reset();
+    
+    const actualFile = file.file;
+    
+    if (file.type.includes('pdf')) {
+      await renderPDF(actualFile, { scale: 2.5 });
+    } else if (file.type.includes('presentation') || file.name.endsWith('.pptx')) {
+      // Pure client-side PPTX rendering - no backend needed!
+      await renderPPTX(actualFile);
+    }
   };
 
   const handleBackToUpload = () => {
     setUploadedFile(null);
-    setCurrentPage(1);
+    setCurrentSlide(1);
+    reset();
   };
 
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+  const handleSlideChange = (slideIndex: number) => {
+    setCurrentSlide(slideIndex + 1);
   };
 
+  // Show presentation viewer when file is uploaded
   if (uploadedFile) {
     return (
       <div className="min-h-screen p-4 sm:p-8">
-        <div className="max-w-6xl mx-auto space-y-4">
+        <div className="max-w-7xl mx-auto space-y-4">
           {/* Header with back button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -45,22 +59,45 @@ export default function Home() {
                   {uploadedFile.name}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Current: Page {currentPage}
+                  {isLoading ? 'Processing...' : `Slide ${currentSlide} of ${slides.length}`}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Document Player */}
-          <UnifiedPlayer 
-            file={uploadedFile} 
-            onPageChange={handlePageChange}
-          />
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-muted-foreground">
+                Rendering slides... {Math.round(progress)}%
+              </p>
+              <Progress value={progress} className="w-64" />
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
+              <p className="text-destructive text-lg">{error}</p>
+              <Button onClick={handleBackToUpload}>Try Again</Button>
+            </div>
+          )}
+
+          {/* Presentation Player */}
+          {!isLoading && !error && slides.length > 0 && (
+            <PresentationPlayer
+              slides={slides}
+              onSlideChange={handleSlideChange}
+              className="h-[80vh]"
+            />
+          )}
         </div>
       </div>
     );
   }
 
+  // Home screen with file upload
   return (
     <div className="flex min-h-screen items-center justify-center p-4 sm:p-8">
       <main className="w-full max-w-4xl space-y-8">
@@ -70,8 +107,8 @@ export default function Home() {
             DeckHand
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Control your presentations remotely. Upload your slides, scan a QR code with your phone, 
-            and transform it into a powerful remote control.
+            View and control presentations from any device. Upload your PDF or PPTX slides 
+            and present them beautifully - works everywhere, no installation needed.
           </p>
         </div>
 
@@ -81,54 +118,35 @@ export default function Home() {
           className="mx-auto"
         />
 
-        {/* File Info Display */}
-        {uploadedFile && (
-          <div className="mt-8 p-6 rounded-lg border border-border bg-card">
-            <h3 className="text-lg font-semibold mb-4">File Details</h3>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div>
-                <dt className="text-muted-foreground">Name</dt>
-                <dd className="font-medium truncate">{uploadedFile.name}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Type</dt>
-                <dd className="font-medium">{uploadedFile.type.includes('pdf') ? 'PDF' : 'PPTX'}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Size</dt>
-                <dd className="font-medium">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Status</dt>
-                <dd className="font-medium text-green-600 dark:text-green-500">Ready</dd>
-              </div>
-            </dl>
-          </div>
-        )}
-
-        {/* Feature Preview */}
+        {/* Feature Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12">
           <div className="p-6 rounded-lg border border-border bg-card text-center">
-            <div className="text-4xl mb-2">📱</div>
+            <Globe className="h-10 w-10 mx-auto mb-3 text-primary" />
+            <h3 className="font-semibold mb-2">Works Everywhere</h3>
+            <p className="text-sm text-muted-foreground">
+              Browser-based rendering works on any device - mobile, tablet, or desktop
+            </p>
+          </div>
+          <div className="p-6 rounded-lg border border-border bg-card text-center">
+            <Zap className="h-10 w-10 mx-auto mb-3 text-primary" />
+            <h3 className="font-semibold mb-2">Fast & Offline</h3>
+            <p className="text-sm text-muted-foreground">
+              All processing happens locally - no upload delays, works offline
+            </p>
+          </div>
+          <div className="p-6 rounded-lg border border-border bg-card text-center">
+            <Smartphone className="h-10 w-10 mx-auto mb-3 text-primary" />
             <h3 className="font-semibold mb-2">Remote Control</h3>
             <p className="text-sm text-muted-foreground">
-              Use your phone to navigate slides
+              Control your presentation from your phone with QR code pairing
             </p>
           </div>
-          <div className="p-6 rounded-lg border border-border bg-card text-center">
-            <div className="text-4xl mb-2">✏️</div>
-            <h3 className="font-semibold mb-2">Annotations</h3>
-            <p className="text-sm text-muted-foreground">
-              Draw and highlight on your slides
-            </p>
-          </div>
-          <div className="p-6 rounded-lg border border-border bg-card text-center">
-            <div className="text-4xl mb-2">📝</div>
-            <h3 className="font-semibold mb-2">Speaker Notes</h3>
-            <p className="text-sm text-muted-foreground">
-              View notes on teleprompter mode
-            </p>
-          </div>
+        </div>
+
+        {/* Supported Formats */}
+        <div className="text-center text-sm text-muted-foreground">
+          <p>Supports <span className="font-medium text-foreground">PDF</span> and <span className="font-medium text-foreground">PPTX</span> files up to 50MB</p>
+          <p className="mt-1">100% client-side processing - your files never leave your device</p>
         </div>
       </main>
     </div>
