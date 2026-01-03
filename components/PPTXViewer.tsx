@@ -57,15 +57,19 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({
     <div className={`flex flex-col space-y-4 ${className}`}>
       {/* Slide Display */}
       <Card className="relative overflow-hidden bg-white dark:bg-zinc-900">
-        <div className="p-8 min-h-[500px] flex items-center justify-center">
+        <div className="relative aspect-video w-full max-w-5xl mx-auto bg-white dark:bg-zinc-900">
           <div 
-            className="prose prose-sm dark:prose-invert max-w-none w-full"
+            className="w-full h-full p-8 overflow-auto"
             dangerouslySetInnerHTML={{ __html: currentSlideData.htmlContent }}
+            style={{
+              fontSize: '1.25rem',
+              lineHeight: '1.75',
+            }}
           />
         </div>
         
         {/* Slide Navigation Overlay */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-border shadow-lg">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-border shadow-lg z-10">
           <Button
             variant="ghost"
             size="icon"
