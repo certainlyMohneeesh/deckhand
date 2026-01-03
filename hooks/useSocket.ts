@@ -26,18 +26,25 @@ interface UseSocketOptions {
   onReconnecting?: () => void;
 }
 
-// Get Socket.io server URL dynamically based on current host
+// Get Socket.io server URL dynamically based on environment
 function getSocketURL(): string {
   if (typeof window === 'undefined') {
     return 'http://localhost:3001';
   }
   
-  // Use the same host as the current page but on port 3001
+  // Check for production environment variable
+  const envSocketURL = process.env.NEXT_PUBLIC_SOCKET_URL;
+  if (envSocketURL) {
+    console.log('[Socket] Using environment URL:', envSocketURL);
+    return envSocketURL;
+  }
+  
+  // Development: Use the same host as the current page but on port 3001
   // This allows mobile devices to connect via IP address
   const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
   const hostname = window.location.hostname;
   
-  // Always use port 3001 for Socket.io server
+  // Always use port 3001 for Socket.io server in development
   return `${protocol}//${hostname}:3001`;
 }
 

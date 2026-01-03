@@ -8,7 +8,10 @@
     "dev:all": "concurrently \"bun run dev\" \"bun run socket\"",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "vercel-build": "next build",
+    "deploy:vercel": "vercel --prod",
+    "deploy:preview": "vercel"
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.8",
