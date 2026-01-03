@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { PPTXDocument } from '@/types/document';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,23 +19,23 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({
 }) => {
   const [currentSlide, setCurrentSlide] = useState(1);
 
-  const goToNextSlide = () => {
+  const goToNextSlide = useCallback(() => {
     if (currentSlide < document.totalSlides) {
       const newSlide = currentSlide + 1;
       setCurrentSlide(newSlide);
       onSlideChange?.(newSlide);
     }
-  };
+  }, [currentSlide, document.totalSlides, onSlideChange]);
 
-  const goToPreviousSlide = () => {
+  const goToPreviousSlide = useCallback(() => {
     if (currentSlide > 1) {
       const newSlide = currentSlide - 1;
       setCurrentSlide(newSlide);
       onSlideChange?.(newSlide);
     }
-  };
+  }, [currentSlide, onSlideChange]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'ArrowRight' || e.key === ' ') {
       e.preventDefault();
       goToNextSlide();
@@ -43,12 +43,18 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({
       e.preventDefault();
       goToPreviousSlide();
     }
-  };
+  }, [goToNextSlide, goToPreviousSlide]);
+
+  // Add keyboard listeners
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const currentSlideData = document.slides[currentSlide - 1];
 
   return (
-    <div className={`flex flex-col space-y-4 ${className}`} tabIndex={0} onKeyDown={handleKeyDown}>
+    <div className={`flex flex-col space-y-4 ${className}`}>
       {/* Slide Display */}
       <Card className="relative overflow-hidden bg-white dark:bg-zinc-900">
         <div className="p-8 min-h-[500px] flex items-center justify-center">
@@ -59,12 +65,13 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({
         </div>
         
         {/* Slide Navigation Overlay */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-border">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-background/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-border shadow-lg">
           <Button
             variant="ghost"
             size="icon"
             onClick={goToPreviousSlide}
             disabled={currentSlide === 1}
+            title="Previous (←)"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -78,6 +85,7 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({
             size="icon"
             onClick={goToNextSlide}
             disabled={currentSlide === document.totalSlides}
+            title="Next (→ or Space)"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -93,11 +101,6 @@ export const PPTXViewer: React.FC<PPTXViewerProps> = ({
           </p>
         </Card>
       )}
-
-      {/* Keyboard Shortcuts Help */}
-      <p className="text-xs text-muted-foreground text-center">
-        Use arrow keys or space to navigate • Press F for fullscreen
-      </p>
     </div>
   );
 };

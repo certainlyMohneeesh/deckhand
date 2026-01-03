@@ -1,12 +1,22 @@
 import { useState, useCallback } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { PDFDocument, PDFPage, PDFParseProgress, DocumentParserError } from '@/types/document';
 import { toast } from 'sonner';
 
-// Configure PDF.js worker
-if (typeof window !== 'undefined') {
+// Dynamic import for pdfjs-dist to avoid SSR issues
+let pdfjsLib: typeof import('pdfjs-dist') | null = null;
+
+const initPDFJS = async () => {
+  if (typeof window === 'undefined') return null;
+  if (pdfjsLib) return pdfjsLib;
+  
+  pdfjsLib = await import('pdfjs-dist');
+  
+  // Configure PDF.js worker
   pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+  
+  return pdfjsLib;
+};
 
 const RENDER_SCALE = 2; // 2x scale for high resolution
 
@@ -101,9 +111,15 @@ export const usePDFParser = () => {
     });
 
     try {
+      // Initialize PDF.js
+      const pdfjs = await initPDFJS();
+      if (!pdfjs) {
+        throw new Error('PDF.js not available in this environment');
+      }
+
       // Load PDF document
       const arrayBuffer = await file.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
       const pdfDoc = await loadingTask.promise;
 
       const totalPages = pdfDoc.numPages;
