@@ -81,6 +81,12 @@ deckhand/
 - ✅ Previous and Next buttons
 - ✅ Maintains current slide state
 - ✅ Real-time progress indicators
+
+### Key Components & Hooks
+
+#### Phase 1-2 Components
+
+**`FileUpload.tsx`** - Full-featured file upload component with:
 - Drag-and-drop support
 - Click to browse functionality
 - Real-time visual feedback
@@ -88,21 +94,52 @@ deckhand/
 - Error handling
 - File removal capability
 
-#### `useFileUpload.ts`
-Custom React hook handling:
-- File validation logic
-- Upload simulation with progress
-- Blob URL management
-- Error state management
-- File metadata extraction
+**`usePDFParser.ts`** - PDF parsing hook:
+- Loads PDF using pdfjs-dist
+- High-resolution canvas rendering (2x scale)
+- Text content extraction for search
+- Annotation/comment extraction
+- Loading states and error handling
 
-#### `types/file.ts`
-TypeScript definitions for:
+**`usePPTXParser.ts`** - PPTX parsing hook:
+- Unzips PPTX using jszip
+- XML parsing with xml2js
+- Slide content extraction
+- Speaker notes extraction
+- Progress tracking
+
+**`PDFViewer.tsx`** - PDF display component:
+- Canvas-based rendering
+- Keyboard navigation
+- Page number display
+- Text content preview
+- Notes display
+
+**`PPTXViewer.tsx`** - PPTX display component:
+- HTML content rendering
+- Speaker notes display
+- Keyboard navigation
+- Slide number indicator
+
+**`UnifiedPlayer.tsx`** - Auto-detecting player:
+- Automatic file type detection
+- Appropriate viewer selection
+- Unified loading states
+- Error handling
+- Progress indicators
+
+#### TypeScript Types
+
+**`types/file.ts`**:
 - `FileMetadata`: File information structure
 - `UploadProgress`: Upload progress tracking
 - `AcceptedFileType`: Allowed file extensions
 
-## 🚀 Getting Started
+**`types/document.ts`**:
+- `PDFDocument`: Parsed PDF structure
+- `PPTXDocument`: Parsed PPTX structure
+- `PDFPage` / `PPTXSlide`: Individual page/slide data
+- `DocumentParserError`: Error handling types
 
 ## 🚀 Getting Started
 
@@ -138,16 +175,33 @@ bunx --bun shadcn@latest add <component-name>
 - **Styling**: Tailwind CSS 4
 - **UI Components**: Shadcn/UI
 - **Icons**: Lucide React
+- **PDF Parsing**: pdfjs-dist 5.4.530
+- **PPTX Parsing**: jszip 3.10.1, xml2js 0.6.2
+
+## 🎯 Features in Action
+
+### Upload & Parse Workflow
+1. User uploads PDF or PPTX file via drag-and-drop or file picker
+2. File is validated (type, size)
+3. Appropriate parser is selected automatically
+4. Document is parsed with real-time progress updates
+5. Viewer displays the document with navigation controls
+6. Text content and notes are extracted and displayed
+
+### Keyboard Shortcuts
+- **→ / Space**: Next slide/page
+- **←**: Previous slide/page
+- **F**: Fullscreen (coming soon)
 
 ## 🔜 Next Steps (Phase 3-8)
 
 Upcoming features according to the project roadmap:
-- **Phase 3**: PDF/PPTX parsing and rendering
-- **Phase 4**: Real-time sync with Socket.io
+- **Phase 3**: ✅ COMPLETE - PDF/PPTX parsing and rendering
+- **Phase 4**: Real-time sync with Socket.io and QR code rooms
 - **Phase 5**: Annotation system with Fabric.js
-- **Phase 6**: Teleprompter mode
-- **Phase 7**: Keyboard shortcuts and polish
-- **Phase 8**: Testing and deployment
+- **Phase 6**: Teleprompter mode with auto-scroll
+- **Phase 7**: Advanced keyboard shortcuts and polish
+- **Phase 8**: Testing and production deployment
 
 ## 📄 License
 
