@@ -2,17 +2,23 @@
 
 import { FileUpload } from '@/components/FileUpload';
 import { PresentationPlayer } from '@/components/PresentationPlayer';
+import { StageControls } from '@/components/StageControls';
+import { TeleprompterUpload } from '@/components/TeleprompterUpload';
 import { useSlideRenderer } from '@/hooks/useSlideRenderer';
+import { useRoom } from '@/contexts/RoomContext';
 import { FileMetadata } from '@/types/file';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Loader2, Download, Smartphone, Zap, Globe } from 'lucide-react';
+import { ArrowLeft, Loader2, Download, Smartphone, Zap, Globe, Monitor, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
+  const router = useRouter();
   const [uploadedFile, setUploadedFile] = useState<FileMetadata | null>(null);
   const [currentSlide, setCurrentSlide] = useState(1);
   const { slides, isLoading, error, progress, renderPDF, renderPPTX, reset } = useSlideRenderer();
+  const { createRoom, roomId, setTotalSlides, goToSlide, currentSlide: roomCurrentSlide } = useRoom();
 
   const handleFileUpload = async (file: FileMetadata) => {
     setUploadedFile(file);
@@ -28,6 +34,20 @@ export default function Home() {
     }
   };
 
+  // Sync slides with room when rendered
+  useEffect(() => {
+    if (slides.length > 0 && roomId) {
+      setTotalSlides(slides.length);
+    }
+  }, [slides.length, roomId, setTotalSlides]);
+
+  // Sync current slide from room
+  useEffect(() => {
+    if (roomId && roomCurrentSlide !== currentSlide) {
+      setCurrentSlide(roomCurrentSlide);
+    }
+  }, [roomCurrentSlide, roomId]);
+
   const handleBackToUpload = () => {
     setUploadedFile(null);
     setCurrentSlide(1);
@@ -35,13 +55,28 @@ export default function Home() {
   };
 
   const handleSlideChange = (slideIndex: number) => {
-    setCurrentSlide(slideIndex + 1);
+    const newSlide = slideIndex + 1;
+    setCurrentSlide(newSlide);
+    
+    // Broadcast slide change if in a room
+    if (roomId) {
+      goToSlide(newSlide);
+    }
+  };
+
+  const handleStartPresentation = () => {
+    if (!roomId) {
+      createRoom('stage');
+    }
   };
 
   // Show presentation viewer when file is uploaded
   if (uploadedFile) {
     return (
       <div className="min-h-screen p-4 sm:p-8">
+        {/* Stage Controls (Room QR, Devices) */}
+        {roomId && <StageControls />}
+        
         <div className="max-w-7xl mx-auto space-y-4">
           {/* Header with back button */}
           <div className="flex items-center justify-between">
@@ -63,6 +98,14 @@ export default function Home() {
                 </p>
               </div>
             </div>
+
+            {/* Start Presentation Button */}
+            {!roomId && !isLoading && slides.length > 0 && (
+              <Button onClick={handleStartPresentation} size="lg">
+                <Users className="h-4 w-4 mr-2" />
+                Start Presentation
+              </Button>
+            )}
           </div>
 
           {/* Loading State */}
@@ -112,11 +155,29 @@ export default function Home() {
           </p>
         </div>
 
-        {/* File Upload Component */}
-        <FileUpload 
-          onFileUpload={handleFileUpload}
-          className="mx-auto"
-        />
+        {/* Quick Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => router.push('/join')}
+            className="sm:w-auto"
+          >
+            <Smartphone className="h-5 w-5 mr-2" />
+            Join Presentation
+          </Button>
+        </div>
+
+        {/* File Upload Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Presentation Upload */}
+          <FileUpload 
+            onFileUpload={handleFileUpload}
+          />
+
+          {/* Teleprompter Script Upload */}
+          <TeleprompterUpload />
+        </div>
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12">
