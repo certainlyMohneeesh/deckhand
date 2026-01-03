@@ -2,7 +2,7 @@
 
 A modern web application that transforms your phone into a powerful remote control for presentations. Upload your slides (PDF/PPTX), scan a QR code, and control everything from your mobile device.
 
-## ✅ Phase 1 & 2 Complete
+## ✅ Phase 1 & Phase 2 Complete
 
 ### Implemented Features
 
@@ -18,17 +18,23 @@ A modern web application that transforms your phone into a powerful remote contr
 deckhand/
 ├── app/              # Next.js routes
 │   ├── layout.tsx    # Root layout with dark theme
-│   ├── page.tsx      # Homepage with file upload
+│   ├── page.tsx      # Homepage with unified player
 │   └── globals.css   # Global styles
 ├── components/       # Reusable UI components
 │   ├── ui/          # Shadcn components
-│   └── FileUpload.tsx
+│   ├── FileUpload.tsx
+│   ├── PDFViewer.tsx
+│   ├── PPTXViewer.tsx
+│   └── UnifiedPlayer.tsx
 ├── hooks/           # Custom React hooks
-│   └── useFileUpload.ts
+│   ├── useFileUpload.ts
+│   ├── usePDFParser.ts
+│   └── usePPTXParser.ts
 ├── lib/             # Utilities and helpers
 │   └── utils.ts
 ├── types/           # TypeScript definitions
 │   ├── file.ts
+│   ├── document.ts
 │   └── index.ts
 └── public/          # Static assets
 ```
@@ -44,10 +50,37 @@ deckhand/
 - ✅ Shadcn/UI consistent styling
 - ✅ Toast notifications for user feedback
 
-### Key Components
+#### 4. PDF Handler ✅
+- ✅ Loads PDF from File/Blob using pdfjs-dist
+- ✅ Extracts total page count
+- ✅ Renders each page to canvas at high resolution (2x scale)
+- ✅ Extracts text content from each page for search
+- ✅ Attempts to extract comments/annotations metadata
+- ✅ Returns array of: { pageNumber, canvas, textContent, notes }
+- ✅ Error handling for corrupted PDFs
+- ✅ React component with loading states
 
-#### `FileUpload.tsx`
-Full-featured file upload component with:
+#### 5. PPTX Handler ✅
+- ✅ Unzips .pptx file client-side using jszip
+- ✅ Parses ppt/slides/*.xml for slide content
+- ✅ Parses ppt/notesSlides/notesSlide*.xml for speaker notes
+- ✅ Converts each slide to HTML with proper styling
+- ✅ Maintains original fonts, colors, and layouts
+- ✅ Returns array of: { slideNumber, htmlContent, speakerNotes }
+- ✅ Handles embedded images and shapes
+- ✅ Created as reusable React hook: usePPTXParser()
+
+#### 6. Unified Player Component ✅
+- ✅ Accepts file prop (PDF or PPTX)
+- ✅ Auto-detects file type from extension/MIME
+- ✅ Uses PDF handler for .pdf files
+- ✅ Uses PPTX handler for .pptx files
+- ✅ Displays slides/pages in full-screen container
+- ✅ Shows current slide/page number and total count
+- ✅ Keyboard navigation (arrow keys, space)
+- ✅ Previous and Next buttons
+- ✅ Maintains current slide state
+- ✅ Real-time progress indicators
 - Drag-and-drop support
 - Click to browse functionality
 - Real-time visual feedback
