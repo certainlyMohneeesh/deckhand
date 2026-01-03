@@ -1,16 +1,65 @@
 'use client';
 
 import { FileUpload } from '@/components/FileUpload';
+import { UnifiedPlayer } from '@/components/UnifiedPlayer';
 import { FileMetadata } from '@/types/file';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<FileMetadata | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleFileUpload = (file: FileMetadata) => {
     setUploadedFile(file);
     console.log('File uploaded:', file);
   };
+
+  const handleBackToUpload = () => {
+    setUploadedFile(null);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  if (uploadedFile) {
+    return (
+      <div className="min-h-screen p-4 sm:p-8">
+        <div className="max-w-6xl mx-auto space-y-4">
+          {/* Header with back button */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToUpload}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <div>
+                <h2 className="text-xl font-semibold truncate max-w-md">
+                  {uploadedFile.name}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Current: Page {currentPage}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Document Player */}
+          <UnifiedPlayer 
+            file={uploadedFile} 
+            onPageChange={handlePageChange}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 sm:p-8">
