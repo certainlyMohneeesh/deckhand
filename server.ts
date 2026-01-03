@@ -1,76 +1,233 @@
 import { Server } from 'socket.io';
 import { createServer } from 'http';
+import os from 'os';
 
-const httpServer = createServer();
+// Get local IP addresses for logging
+function getLocalIPs(): string[] {
+  const interfaces = os.networkInterfaces();
+  const ips: string[] = [];
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        ips.push(iface.address);
+      }
+    }
+  }
+  return ips;
+}
+
+const httpServer = createServer((req, res) => {
+  // Handle CORS preflight and health check
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+  
+  // Health check endpoint
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', connections: io.engine.clientsCount }));
+    return;
+  }
+  
+  res.writeHead(200);
+  res.end('DeckHand Socket.io Server');
+});
+
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
+    origin: '*',  // Allow all origins for local network access
     methods: ['GET', 'POST'],
-    credentials: true,
+    credentials: false,  // Set false for simpler CORS
+    allowedHeaders: ['Content-Type'],
   },
   transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  allowEIO3: true,  // Allow older clients
 });
+
+// =============================================================================
+// ROOM STATE MANAGEMENT (Production-ready)
+// =============================================================================
+
+interface RoomState {
+  slideIndex: number;
+  totalSlides: number;
+  createdAt: number;
+  lastActivity: number;
+}
+
+interface DeviceInfo {
+  role: 'stage' | 'remote' | 'teleprompter';
+  name: string;
+  roomId: string;
+  joinedAt: number;
+}
 
 // Room storage
 const rooms = new Map<string, Set<string>>();
-const deviceRoles = new Map<string, { role: 'stage' | 'remote' | 'teleprompter', name: string }>();
-const roomSlideStates = new Map<string, number>();
+const deviceInfo = new Map<string, DeviceInfo>();
+const roomStates = new Map<string, RoomState>();
+
+// Helper: Get connected devices for a room
+function getConnectedDevices(roomId: string) {
+  const deviceSet = rooms.get(roomId);
+  if (!deviceSet) return [];
+  
+  return Array.from(deviceSet)
+    .map(id => {
+      const info = deviceInfo.get(id);
+      return info ? { id, role: info.role, name: info.name } : null;
+    })
+    .filter((d): d is NonNullable<typeof d> => d !== null);
+}
+
+// Helper: Broadcast room update
+function broadcastRoomUpdate(roomId: string) {
+  const devices = getConnectedDevices(roomId);
+  const state = roomStates.get(roomId);
+  
+  io.to(roomId).emit('room-updated', {
+    roomId,
+    devices,
+    totalDevices: devices.length,
+    totalSlides: state?.totalSlides || 0,
+  });
+}
+
+// =============================================================================
+// SOCKET CONNECTION HANDLING
+// =============================================================================
 
 io.on('connection', (socket) => {
-  console.log(`[Socket.io] Client connected: ${socket.id}`);
+  console.log(`[Socket.io] ✓ Client connected: ${socket.id.substring(0, 8)}...`);
 
-  // Handle room joining
+  // -------------------------------------------------------------------------
+  // JOIN ROOM
+  // -------------------------------------------------------------------------
   socket.on('join-room', ({ roomId, role, deviceName }) => {
-    console.log(`[Room] ${socket.id} joining room ${roomId} as ${role}`);
+    console.log(`[Room] ${socket.id.substring(0, 8)} joining ${roomId} as ${role}`);
     
+    // Leave any previous rooms first
+    const existingInfo = deviceInfo.get(socket.id);
+    if (existingInfo && existingInfo.roomId !== roomId) {
+      socket.leave(existingInfo.roomId);
+      const oldDeviceSet = rooms.get(existingInfo.roomId);
+      if (oldDeviceSet) {
+        oldDeviceSet.delete(socket.id);
+        broadcastRoomUpdate(existingInfo.roomId);
+      }
+    }
+    
+    // Join the new room
     socket.join(roomId);
     
-    // Store device role
-    deviceRoles.set(socket.id, { role, name: deviceName || 'Unknown Device' });
+    // Store device info
+    deviceInfo.set(socket.id, {
+      role,
+      name: deviceName || 'Unknown Device',
+      roomId,
+      joinedAt: Date.now(),
+    });
     
-    // Add to room set
+    // Initialize room if needed
     if (!rooms.has(roomId)) {
       rooms.set(roomId, new Set());
-      roomSlideStates.set(roomId, 1); // Default to slide 1
+      roomStates.set(roomId, {
+        slideIndex: 1,
+        totalSlides: 0,
+        createdAt: Date.now(),
+        lastActivity: Date.now(),
+      });
     }
-    rooms.get(roomId)?.add(socket.id);
+    rooms.get(roomId)!.add(socket.id);
+    
+    // Update room activity
+    const state = roomStates.get(roomId)!;
+    state.lastActivity = Date.now();
 
-    // Get connected devices in room
-    const connectedDevices = Array.from(rooms.get(roomId) || [])
-      .map(id => ({
-        id,
-        ...deviceRoles.get(id),
-      }))
-      .filter(d => d.role);
-
-    // Notify all devices in room about new connection
-    io.to(roomId).emit('room-updated', {
+    // Send current state to newly joined device
+    socket.emit('slide-sync', {
+      slideIndex: state.slideIndex,
+      totalSlides: state.totalSlides,
       roomId,
-      devices: connectedDevices,
-      totalDevices: connectedDevices.length,
     });
 
-    // Send current slide state to newly joined device
-    const currentSlide = roomSlideStates.get(roomId) || 1;
-    socket.emit('slide-sync', { slideIndex: currentSlide, roomId });
+    // Notify all devices about the new connection
+    broadcastRoomUpdate(roomId);
 
-    console.log(`[Room] Room ${roomId} now has ${connectedDevices.length} device(s)`);
+    console.log(`[Room] Room ${roomId} now has ${rooms.get(roomId)!.size} device(s)`);
   });
 
-  // Handle slide changes
-  socket.on('slide-change', ({ roomId, slideIndex }) => {
-    console.log(`[Slide] ${socket.id} changed to slide ${slideIndex} in room ${roomId}`);
+  // -------------------------------------------------------------------------
+  // SLIDE CHANGE - The critical sync event
+  // -------------------------------------------------------------------------
+  socket.on('slide-change', ({ roomId, slideIndex, totalSlides }) => {
+    const info = deviceInfo.get(socket.id);
+    const role = info?.role || 'unknown';
+    
+    console.log(`[Slide] ${role}:${socket.id.substring(0, 8)} → slide ${slideIndex} in ${roomId}`);
+    
+    // Validate room exists
+    const state = roomStates.get(roomId);
+    if (!state) {
+      console.warn(`[Slide] Room ${roomId} does not exist!`);
+      return;
+    }
     
     // Update room state
-    roomSlideStates.set(roomId, slideIndex);
+    state.slideIndex = slideIndex;
+    state.lastActivity = Date.now();
     
-    // Broadcast to all devices in room
-    io.to(roomId).emit('slide-sync', { slideIndex, roomId, sourceId: socket.id });
+    // Update totalSlides if provided (usually from stage)
+    if (totalSlides !== undefined && totalSlides > 0) {
+      state.totalSlides = totalSlides;
+    }
+    
+    // CRITICAL: Broadcast to ALL devices in room INCLUDING sender
+    // This ensures everyone is in sync
+    io.to(roomId).emit('slide-sync', {
+      slideIndex,
+      totalSlides: state.totalSlides,
+      roomId,
+      sourceId: socket.id,
+      timestamp: Date.now(),
+    });
+    
+    console.log(`[Slide] ✓ Broadcasted slide ${slideIndex}/${state.totalSlides} to room ${roomId}`);
   });
 
-  // Handle annotation data
+  // -------------------------------------------------------------------------
+  // SET TOTAL SLIDES (from stage)
+  // -------------------------------------------------------------------------
+  socket.on('set-total-slides', ({ roomId, totalSlides }) => {
+    console.log(`[Slides] Setting total slides for ${roomId}: ${totalSlides}`);
+    
+    const state = roomStates.get(roomId);
+    if (state) {
+      state.totalSlides = totalSlides;
+      state.lastActivity = Date.now();
+      
+      // Broadcast to all devices
+      io.to(roomId).emit('slide-sync', {
+        slideIndex: state.slideIndex,
+        totalSlides: state.totalSlides,
+        roomId,
+      });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // ANNOTATIONS
+  // -------------------------------------------------------------------------
   socket.on('annotation-data', ({ roomId, slideId, stroke }) => {
-    console.log(`[Annotation] Received from ${socket.id} in room ${roomId}`);
+    console.log(`[Annotation] Received from ${socket.id.substring(0, 8)} in room ${roomId}`);
     
     // Broadcast to all other devices in room
     socket.to(roomId).emit('annotation-received', {
@@ -80,72 +237,60 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Handle clear annotations
   socket.on('clear-annotations', ({ roomId, slideId }) => {
     console.log(`[Annotation] Clear request for slide ${slideId} in room ${roomId}`);
     
     io.to(roomId).emit('annotations-cleared', { slideId, roomId });
   });
 
-  // Handle device role updates
+  // -------------------------------------------------------------------------
+  // ROLE UPDATES
+  // -------------------------------------------------------------------------
   socket.on('update-role', ({ roomId, role, deviceName }) => {
-    console.log(`[Role] ${socket.id} updated role to ${role}`);
+    console.log(`[Role] ${socket.id.substring(0, 8)} updated role to ${role}`);
     
-    deviceRoles.set(socket.id, { role, name: deviceName || 'Unknown Device' });
+    const info = deviceInfo.get(socket.id);
+    if (info) {
+      info.role = role;
+      info.name = deviceName || info.name;
+    }
     
-    const connectedDevices = Array.from(rooms.get(roomId) || [])
-      .map(id => ({
-        id,
-        ...deviceRoles.get(id),
-      }))
-      .filter(d => d.role);
-
-    io.to(roomId).emit('room-updated', {
-      roomId,
-      devices: connectedDevices,
-      totalDevices: connectedDevices.length,
-    });
+    broadcastRoomUpdate(roomId);
   });
 
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+  // -------------------------------------------------------------------------
+  // DISCONNECT HANDLING
+  // -------------------------------------------------------------------------
+  socket.on('disconnect', (reason) => {
+    console.log(`[Socket.io] ✗ Client disconnected: ${socket.id.substring(0, 8)} (${reason})`);
     
-    // Find and remove from all rooms
-    rooms.forEach((deviceSet, roomId) => {
-      if (deviceSet.has(socket.id)) {
+    const info = deviceInfo.get(socket.id);
+    if (info) {
+      const { roomId } = info;
+      const deviceSet = rooms.get(roomId);
+      
+      if (deviceSet) {
         deviceSet.delete(socket.id);
         
-        // Clean up empty rooms
         if (deviceSet.size === 0) {
+          // Clean up empty rooms
           rooms.delete(roomId);
-          roomSlideStates.delete(roomId);
+          roomStates.delete(roomId);
           console.log(`[Room] Room ${roomId} deleted (empty)`);
         } else {
-          // Notify remaining devices
-          const connectedDevices = Array.from(deviceSet)
-            .map(id => ({
-              id,
-              ...deviceRoles.get(id),
-            }))
-            .filter(d => d.role);
-
-          io.to(roomId).emit('room-updated', {
-            roomId,
-            devices: connectedDevices,
-            totalDevices: connectedDevices.length,
-          });
+          broadcastRoomUpdate(roomId);
         }
       }
-    });
+    }
     
-    // Clean up device role
-    deviceRoles.delete(socket.id);
+    deviceInfo.delete(socket.id);
   });
 
-  // Handle explicit leave
+  // -------------------------------------------------------------------------
+  // EXPLICIT LEAVE
+  // -------------------------------------------------------------------------
   socket.on('leave-room', ({ roomId }) => {
-    console.log(`[Room] ${socket.id} leaving room ${roomId}`);
+    console.log(`[Room] ${socket.id.substring(0, 8)} leaving room ${roomId}`);
     
     socket.leave(roomId);
     
@@ -155,26 +300,52 @@ io.on('connection', (socket) => {
       
       if (deviceSet.size === 0) {
         rooms.delete(roomId);
-        roomSlideStates.delete(roomId);
+        roomStates.delete(roomId);
+        console.log(`[Room] Room ${roomId} deleted (empty)`);
       } else {
-        const connectedDevices = Array.from(deviceSet)
-          .map(id => ({
-            id,
-            ...deviceRoles.get(id),
-          }))
-          .filter(d => d.role);
-
-        io.to(roomId).emit('room-updated', {
-          roomId,
-          devices: connectedDevices,
-          totalDevices: connectedDevices.length,
-        });
+        broadcastRoomUpdate(roomId);
       }
     }
+    
+    deviceInfo.delete(socket.id);
   });
 });
 
-const PORT = 3001;
-httpServer.listen(PORT, () => {
-  console.log(`[Socket.io] Server running on port ${PORT}`);
+// =============================================================================
+// SERVER STARTUP
+// =============================================================================
+
+const PORT = parseInt(process.env.SOCKET_PORT || '3001', 10);
+const HOST = '0.0.0.0';  // Listen on all interfaces for mobile access
+
+httpServer.listen(PORT, HOST, () => {
+  const localIPs = getLocalIPs();
+  
+  console.log('');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('  🔌 DeckHand Socket.io Server');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log(`  ✓ Port: ${PORT}`);
+  console.log(`  ✓ Host: ${HOST} (all interfaces)`);
+  console.log('');
+  console.log('  📍 Access URLs:');
+  console.log(`     Local:   http://localhost:${PORT}`);
+  localIPs.forEach(ip => {
+    console.log(`     Network: http://${ip}:${PORT}`);
+  });
+  console.log('');
+  console.log('  📱 For mobile devices:');
+  console.log('     1. Connect to same WiFi network');
+  console.log('     2. Use the Network URL above');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('');
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n[Socket.io] Shutting down gracefully...');
+  io.close(() => {
+    console.log('[Socket.io] Server closed');
+    process.exit(0);
+  });
 });

@@ -17,6 +17,7 @@ import {
 interface PresentationPlayerProps {
   slides: SlideData[];
   onSlideChange?: (slideIndex: number) => void;
+  externalSlideIndex?: number;  // External slide index from room sync
   className?: string;
 }
 
@@ -30,6 +31,7 @@ export interface SlideData {
 export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
   slides,
   onSlideChange,
+  externalSlideIndex,
   className,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -39,8 +41,26 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
+  const currentSlideRef = useRef(currentSlide);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentSlideRef.current = currentSlide;
+  }, [currentSlide]);
 
   const totalSlides = slides.length;
+
+  // Sync with external slide index (from room/remote control)
+  useEffect(() => {
+    if (externalSlideIndex !== undefined && externalSlideIndex >= 0 && externalSlideIndex < totalSlides) {
+      // Use ref to avoid stale closure
+      if (externalSlideIndex !== currentSlideRef.current) {
+        console.log('[PresentationPlayer] Syncing to external slide:', externalSlideIndex, 'from:', currentSlideRef.current);
+        setDirection(externalSlideIndex > currentSlideRef.current ? 1 : -1);
+        setCurrentSlide(externalSlideIndex);
+      }
+    }
+  }, [externalSlideIndex, totalSlides]);
 
   // Navigation functions
   const goToSlide = useCallback((index: number) => {

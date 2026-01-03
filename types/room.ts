@@ -34,12 +34,15 @@ export interface JoinRoomPayload {
 export interface SlideChangePayload {
   roomId: string;
   slideIndex: number;
+  totalSlides?: number;
 }
 
 export interface SlideSyncPayload {
   slideIndex: number;
   roomId: string;
   sourceId?: string;
+  totalSlides?: number;
+  timestamp?: number;
 }
 
 export interface AnnotationDataPayload {
@@ -68,6 +71,7 @@ export interface RoomUpdatedPayload {
   roomId: string;
   devices: ConnectedDevice[];
   totalDevices: number;
+  totalSlides?: number;
 }
 
 export interface UpdateRolePayload {

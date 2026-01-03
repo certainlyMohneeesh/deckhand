@@ -74,16 +74,24 @@ export function RoomProvider({ children }: RoomProviderProps) {
       toast.loading('Reconnecting...', { id: 'reconnecting' });
     },
     onSlideSync: (data) => {
-      // Don't update if we're the source of the change
+      // Update slide index and totalSlides from server
       setRoomState(prev => ({
         ...prev,
         currentSlide: data.slideIndex,
+        // Update totalSlides if provided by server (from stage)
+        totalSlides: data.totalSlides !== undefined && data.totalSlides > 0 
+          ? data.totalSlides 
+          : prev.totalSlides,
       }));
     },
     onRoomUpdated: (data) => {
       setRoomState(prev => ({
         ...prev,
         connectedDevices: data.devices,
+        // Sync totalSlides if provided
+        totalSlides: data.totalSlides !== undefined && data.totalSlides > 0 
+          ? data.totalSlides 
+          : prev.totalSlides,
       }));
     },
   });
@@ -170,6 +178,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
     changeSlide({
       roomId: roomState.roomId,
       slideIndex: clampedIndex,
+      totalSlides: roomState.totalSlides,  // Always include totalSlides for sync
     });
   }, [roomState.roomId, roomState.totalSlides, changeSlide]);
 

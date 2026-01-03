@@ -92,7 +92,9 @@ export default function RemotePage() {
   };
 
   const handleNextSlide = () => {
-    if (currentSlide < totalSlides) {
+    // Allow next if connected - the stage will enforce actual limits
+    // totalSlides might be 0 on remote if not synced yet
+    if (totalSlides === 0 || currentSlide < totalSlides) {
       nextSlide();
       toast.success(`Slide ${currentSlide + 1}`);
     }
@@ -220,7 +222,7 @@ export default function RemotePage() {
           {/* Next Button */}
           <Button
             onClick={handleNextSlide}
-            disabled={!isConnected || currentSlide >= totalSlides}
+            disabled={!isConnected || (totalSlides > 0 && currentSlide >= totalSlides)}
             size="lg"
             className="h-32 flex flex-col space-y-2"
           >

@@ -132,6 +132,7 @@ export default function Home() {
             <PresentationPlayer
               slides={slides}
               onSlideChange={handleSlideChange}
+              externalSlideIndex={currentSlide - 1}  // Convert 1-indexed to 0-indexed
               className="h-[80vh]"
             />
           )}

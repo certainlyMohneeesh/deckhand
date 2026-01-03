@@ -26,6 +26,21 @@ interface UseSocketOptions {
   onReconnecting?: () => void;
 }
 
+// Get Socket.io server URL dynamically based on current host
+function getSocketURL(): string {
+  if (typeof window === 'undefined') {
+    return 'http://localhost:3001';
+  }
+  
+  // Use the same host as the current page but on port 3001
+  // This allows mobile devices to connect via IP address
+  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+  const hostname = window.location.hostname;
+  
+  // Always use port 3001 for Socket.io server
+  return `${protocol}//${hostname}:3001`;
+}
+
 export function useSocket(options: UseSocketOptions = {}) {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -36,13 +51,20 @@ export function useSocket(options: UseSocketOptions = {}) {
     // Initialize socket only in browser
     if (typeof window === 'undefined') return;
 
-    // Create socket connection
-    const socket = io('http://localhost:3001', {
+    const socketURL = getSocketURL();
+    console.log('[Socket] Connecting to:', socketURL);
+
+    // Create socket connection with production-ready options
+    const socket = io(socketURL, {
       path: '/socket.io',
-      transports: ['websocket', 'polling'],
+      transports: ['websocket', 'polling'],  // Prefer websocket, fallback to polling
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 10,
+      timeout: 20000,
+      autoConnect: true,
+      forceNew: false,
     });
 
     socketRef.current = socket;
