@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DeckHand - Smart Presentation Control 🎯
 
-## Getting Started
+A modern web application that transforms your phone into a powerful remote control for presentations. Upload your slides (PDF/PPTX), scan a QR code, and control everything from your mobile device.
 
-First, run the development server:
+## ✅ Phase 1 & 2 Complete
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Implemented Features
+
+#### 1. Project Foundation ✅
+- ✅ Next.js 16+ with App Router and TypeScript
+- ✅ Tailwind CSS for styling
+- ✅ Shadcn/UI integrated with components: button, card, progress, sonner (toast)
+- ✅ Dark theme enabled by default
+- ✅ Responsive design with mobile-first approach
+
+#### 2. Folder Structure ✅
+```
+deckhand/
+├── app/              # Next.js routes
+│   ├── layout.tsx    # Root layout with dark theme
+│   ├── page.tsx      # Homepage with file upload
+│   └── globals.css   # Global styles
+├── components/       # Reusable UI components
+│   ├── ui/          # Shadcn components
+│   └── FileUpload.tsx
+├── hooks/           # Custom React hooks
+│   └── useFileUpload.ts
+├── lib/             # Utilities and helpers
+│   └── utils.ts
+├── types/           # TypeScript definitions
+│   ├── file.ts
+│   └── index.ts
+└── public/          # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### 3. File Upload System ✅
+- ✅ Accepts both .pdf and .pptx files
+- ✅ Drag-and-drop zone with visual feedback
+- ✅ File type validation (PDF/PPTX only)
+- ✅ File size validation (max 50MB)
+- ✅ Upload progress indicator
+- ✅ Stores files in browser memory (not localStorage)
+- ✅ Returns file metadata (name, type, size, blob URL)
+- ✅ Shadcn/UI consistent styling
+- ✅ Toast notifications for user feedback
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Key Components
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### `FileUpload.tsx`
+Full-featured file upload component with:
+- Drag-and-drop support
+- Click to browse functionality
+- Real-time visual feedback
+- Progress tracking
+- Error handling
+- File removal capability
 
-## Learn More
+#### `useFileUpload.ts`
+Custom React hook handling:
+- File validation logic
+- Upload simulation with progress
+- Blob URL management
+- Error state management
+- File metadata extraction
 
-To learn more about Next.js, take a look at the following resources:
+#### `types/file.ts`
+TypeScript definitions for:
+- `FileMetadata`: File information structure
+- `UploadProgress`: Upload progress tracking
+- `AcceptedFileType`: Allowed file extensions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Getting Started
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Getting Started
 
-## Deploy on Vercel
+### Installation
+```bash
+bun install
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Development
+```bash
+bun run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Visit [http://localhost:3000](http://localhost:3000)
+
+### Adding Shadcn Components
+```bash
+bunx --bun shadcn@latest add <component-name>
+```
+
+## 🎨 Design Features
+
+- **Dark Theme**: Enabled by default with OKLCH color space
+- **Responsive**: Mobile-first design with Tailwind breakpoints
+- **Accessible**: Proper ARIA labels and keyboard navigation
+- **Modern UI**: Shadcn/UI components with consistent styling
+
+## 📦 Tech Stack
+
+- **Framework**: Next.js 16.1.1
+- **Runtime**: Bun
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS 4
+- **UI Components**: Shadcn/UI
+- **Icons**: Lucide React
+
+## 🔜 Next Steps (Phase 3-8)
+
+Upcoming features according to the project roadmap:
+- **Phase 3**: PDF/PPTX parsing and rendering
+- **Phase 4**: Real-time sync with Socket.io
+- **Phase 5**: Annotation system with Fabric.js
+- **Phase 6**: Teleprompter mode
+- **Phase 7**: Keyboard shortcuts and polish
+- **Phase 8**: Testing and deployment
+
+## 📄 License
+
+This project is part of the Nesternity DeckHand initiative.
