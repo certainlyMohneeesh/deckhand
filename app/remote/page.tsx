@@ -187,33 +187,34 @@ export default function RemotePage() {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-background to-muted p-4"
+      className="min-h-screen bg-gradient-to-br from-background to-muted p-3 sm:p-4 md:p-5 lg:p-6"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-md mx-auto space-y-4 sm:space-y-5 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleLeave}
+            className="flex-shrink-0"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Leave
+            <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Leave</span>
           </Button>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
             {isReconnecting ? (
-              <WifiOff className="h-4 w-4 text-yellow-500 animate-pulse" />
+              <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 animate-pulse flex-shrink-0" />
             ) : isConnected ? (
-              <Wifi className="h-4 w-4 text-green-500" />
+              <Wifi className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
             ) : (
-              <WifiOff className="h-4 w-4 text-red-500" />
+              <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
             )}
-            <span className="text-sm font-medium">
-              Room: {roomId}
+            <span className="text-xs sm:text-sm font-medium truncate">
+              <span className="hidden sm:inline">Room: </span>{roomId}
             </span>
           </div>
         </div>
@@ -221,8 +222,8 @@ export default function RemotePage() {
         {/* Connection Status */}
         {!isConnected && (
           <Card className="border-yellow-500 bg-yellow-500/10">
-            <CardContent className="p-4">
-              <p className="text-sm text-center">
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-center">
                 {isReconnecting ? 'Reconnecting...' : 'Disconnected from room'}
               </p>
             </CardContent>
@@ -232,10 +233,10 @@ export default function RemotePage() {
         {/* Stage Connection Info */}
         {stageDevices.length === 0 ? (
           <Card className="border-orange-500 bg-orange-500/10">
-            <CardContent className="p-4">
-              <div className="text-center space-y-2">
-                <Home className="h-8 w-8 mx-auto text-orange-500" />
-                <p className="text-sm font-medium">No Stage device connected</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="text-center space-y-1 sm:space-y-2">
+                <Home className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-orange-500" />
+                <p className="text-xs sm:text-sm font-medium">No Stage device connected</p>
                 <p className="text-xs text-muted-foreground">
                   Waiting for someone to start the presentation...
                 </p>
@@ -244,9 +245,9 @@ export default function RemotePage() {
           </Card>
         ) : (
           <Card className="border-green-500 bg-green-500/10">
-            <CardContent className="p-4">
-              <div className="text-center space-y-2">
-                <Home className="h-6 w-6 mx-auto text-green-500" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="text-center space-y-1 sm:space-y-2">
+                <Home className="h-5 w-5 sm:h-6 sm:w-6 mx-auto text-green-500" />
                 <p className="text-xs font-medium">
                   Connected to {stageDevices[0].name}
                 </p>
@@ -258,9 +259,9 @@ export default function RemotePage() {
         {/* Feature 1: Stage Preview */}
         {currentSlideData && (
           <Card className="bg-background/95 backdrop-blur">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground mb-2">Current Slide Preview</p>
-              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-lg">
                 <img 
                   src={currentSlideData.imageUrl} 
                   alt={`Slide ${currentSlide}`}
@@ -273,15 +274,15 @@ export default function RemotePage() {
 
         {/* Current Slide Display */}
         <Card className="bg-background/95 backdrop-blur">
-          <CardContent className="p-6">
-            <div className="text-center space-y-4">
-              <Smartphone className="h-12 w-12 mx-auto text-primary" />
+          <CardContent className="p-4 sm:p-6 md:p-8">
+            <div className="text-center space-y-3 sm:space-y-4">
+              <Smartphone className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 mx-auto text-primary" />
               <div>
-                <h1 className="text-6xl font-bold">
+                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold">
                   {currentSlide}
                 </h1>
                 {totalSlides > 0 && (
-                  <p className="text-lg text-muted-foreground mt-2">
+                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground mt-2">
                     of {totalSlides}
                   </p>
                 )}
@@ -289,7 +290,7 @@ export default function RemotePage() {
               
               {/* Progress Bar */}
               {totalSlides > 0 && (
-                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-muted rounded-full h-2 sm:h-2.5 overflow-hidden">
                   <div 
                     className="bg-primary h-full transition-all duration-300"
                     style={{ width: `${(currentSlide / totalSlides) * 100}%` }}
@@ -338,18 +339,18 @@ export default function RemotePage() {
 
         {/* Feature 1: Presentation Controls */}
         <Card className="bg-background/95 backdrop-blur">
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground mb-3">Presentation Controls</p>
-            <div className="grid grid-cols-3 gap-3">
+          <CardContent className="p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Presentation Controls</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <Button
                 variant={roomIsFullscreen ? "default" : "outline"}
                 size="lg"
                 onClick={handleToggleFullscreen}
                 disabled={!isConnected || stageDevices.length === 0}
-                className="flex flex-col h-20 space-y-2"
+                className="flex flex-col h-16 sm:h-20 md:h-24 space-y-1 sm:space-y-2 touch-manipulation"
               >
-                {roomIsFullscreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
-                <span className="text-xs">Fullscreen</span>
+                {roomIsFullscreen ? <Minimize className="h-5 w-5 sm:h-6 sm:w-6" /> : <Maximize className="h-5 w-5 sm:h-6 sm:w-6" />}
+                <span className="text-xs sm:text-sm">Fullscreen</span>
               </Button>
               
               <Button
@@ -357,10 +358,10 @@ export default function RemotePage() {
                 size="lg"
                 onClick={handleTogglePlay}
                 disabled={!isConnected || stageDevices.length === 0}
-                className="flex flex-col h-20 space-y-2"
+                className="flex flex-col h-16 sm:h-20 md:h-24 space-y-1 sm:space-y-2 touch-manipulation"
               >
-                {roomIsPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-                <span className="text-xs">Auto Play</span>
+                {roomIsPlaying ? <Pause className="h-5 w-5 sm:h-6 sm:w-6" /> : <Play className="h-5 w-5 sm:h-6 sm:w-6" />}
+                <span className="text-xs sm:text-sm">Auto Play</span>
               </Button>
               
               <Button
@@ -368,10 +369,10 @@ export default function RemotePage() {
                 size="lg"
                 onClick={handleToggleGrid}
                 disabled={!isConnected || stageDevices.length === 0}
-                className="flex flex-col h-20 space-y-2"
+                className="flex flex-col h-16 sm:h-20 md:h-24 space-y-1 sm:space-y-2 touch-manipulation"
               >
-                <Grid3x3 className="h-6 w-6" />
-                <span className="text-xs">Grid View</span>
+                <Grid3x3 className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="text-xs sm:text-sm">Grid View</span>
               </Button>
             </div>
           </CardContent>
@@ -379,21 +380,21 @@ export default function RemotePage() {
 
         {/* Feature 2: Privacy Screen Control */}
         <Card className="bg-background/95 backdrop-blur">
-          <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground mb-3">Privacy Mode</p>
+          <CardContent className="p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Privacy Mode</p>
             <Button
               variant={roomIsPrivacyMode ? "default" : "outline"}
               size="lg"
               onClick={handleTogglePrivacy}
               disabled={!isConnected || stageDevices.length === 0}
-              className="flex items-center justify-center w-full h-20 space-x-3"
+              className="flex items-center justify-center w-full h-16 sm:h-20 md:h-24 space-x-2 sm:space-x-3 touch-manipulation"
             >
-              {roomIsPrivacyMode ? <EyeOff className="h-7 w-7" /> : <Eye className="h-7 w-7" />}
-              <span className="text-base font-semibold">
+              {roomIsPrivacyMode ? <EyeOff className="h-6 w-6 sm:h-7 sm:w-7" /> : <Eye className="h-6 w-6 sm:h-7 sm:w-7" />}
+              <span className="text-sm sm:text-base md:text-lg font-semibold">
                 {roomIsPrivacyMode ? 'Privacy ON' : 'Privacy OFF'}
               </span>
             </Button>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-2 text-center">
               Hide slides and show logo on Stage
             </p>
           </CardContent>
@@ -402,8 +403,8 @@ export default function RemotePage() {
         {/* Feature 1: Grid View - Shows on Remote when toggled */}
         {roomShowGrid && (
           <Card className="bg-background/95 backdrop-blur">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-3">Slide Overview - Tap to Jump</p>
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">Slide Overview - Tap to Jump</p>
               {slides.length > 0 ? (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
                   {slides.map((slide, index) => (
@@ -463,16 +464,16 @@ export default function RemotePage() {
 
         {/* Keyboard Shortcuts Hint */}
         <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <p className="text-xs text-center text-muted-foreground">
+          <CardContent className="p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-center text-muted-foreground">
               Tip: Use Left/Right arrow keys or swipe to navigate
             </p>
           </CardContent>
         </Card>
 
         {/* Device Info */}
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground">
+        <div className="text-center pb-2">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {connectedDevices.length} device{connectedDevices.length !== 1 ? 's' : ''} connected
           </p>
         </div>
