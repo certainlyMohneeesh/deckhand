@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PDFDocument } from '@/types/document';
 import { Button } from '@/components/ui/button';
+import { PrivacyScreen } from './PrivacyScreen';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -21,6 +22,8 @@ interface PresentationPlayerProps {
   externalFullscreen?: boolean;  // Feature 1: External fullscreen control
   externalAutoPlay?: boolean;    // Feature 1: External auto-play control
   externalShowOverview?: boolean; // Feature 1: External grid view control
+  externalPrivacyMode?: boolean;  // Feature 2: External privacy mode control
+  onPrivacyExit?: () => void;     // Feature 2: Callback to exit privacy mode
   className?: string;
 }
 
@@ -38,6 +41,8 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
   externalFullscreen,
   externalAutoPlay,
   externalShowOverview,
+  externalPrivacyMode,
+  onPrivacyExit,
   className,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -260,6 +265,11 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
         isFullscreen ? 'fixed inset-0 z-50' : 'rounded-lg'
       }`}
     >
+      {/* Feature 2: Privacy Screen Overlay - Rendered inside fullscreen container */}
+      {externalPrivacyMode && (
+        <PrivacyScreen onExit={onPrivacyExit} />
+      )}
+
       {/* Slide Overview Grid */}
       <AnimatePresence>
         {showOverview && (

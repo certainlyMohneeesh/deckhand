@@ -14,7 +14,16 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onExit }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+      className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+      }}
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}

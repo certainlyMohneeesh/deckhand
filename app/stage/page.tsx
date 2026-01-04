@@ -111,11 +111,6 @@ export default function StagePage() {
 
   return (
     <div className="min-h-screen p-4 sm:p-8">
-      {/* Feature 2: Privacy Screen Overlay */}
-      {isPrivacyMode && (
-        <PrivacyScreen onExit={() => togglePrivacy(false)} />
-      )}
-
       {/* Stage Controls (Room QR, Devices) */}
       {roomId && <StageControls />}
       
@@ -170,6 +165,8 @@ export default function StagePage() {
             externalFullscreen={isFullscreen}
             externalAutoPlay={isPlaying}
             externalShowOverview={showGrid}
+            externalPrivacyMode={isPrivacyMode}
+            onPrivacyExit={() => togglePrivacy(false)}
             className="h-[80vh]"
           />
         )}

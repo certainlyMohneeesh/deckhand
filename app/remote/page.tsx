@@ -54,6 +54,10 @@ export default function RemotePage() {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
+  // Computed values - must be declared before useEffect hooks
+  const stageDevices = connectedDevices.filter(d => d.role === 'stage');
+  const currentSlideData = slides[currentSlide - 1];
+
   // Sync control states from RoomContext (for display purposes)
   useEffect(() => {
     console.log('[Remote] Syncing showGrid from room:', roomShowGrid);
@@ -63,6 +67,18 @@ export default function RemotePage() {
   useEffect(() => {
     console.log('[Remote] Slides available:', slides.length, 'totalSlides:', totalSlides);
   }, [slides.length, totalSlides]);
+
+  // Debug: Check connection and navigation state
+  useEffect(() => {
+    console.log('[Remote] Navigation State:', {
+      isConnected,
+      currentSlide,
+      totalSlides,
+      stageDevicesCount: stageDevices.length,
+      canGoPrevious: currentSlide > 1,
+      canGoNext: totalSlides === 0 || currentSlide < totalSlides
+    });
+  }, [isConnected, currentSlide, totalSlides, stageDevices.length]);
 
   useEffect(() => {
     // Redirect if not in a room or not a remote device
@@ -168,9 +184,6 @@ export default function RemotePage() {
     togglePrivacy(newState);
     toast.success(`Privacy Screen ${newState ? 'ON' : 'OFF'}`);
   };
-
-  const stageDevices = connectedDevices.filter(d => d.role === 'stage');
-  const currentSlideData = slides[currentSlide - 1];
 
   return (
     <div 
@@ -283,6 +296,42 @@ export default function RemotePage() {
                   />
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Slide Navigation Buttons */}
+        <Card className="bg-background/95 backdrop-blur">
+          <CardContent className="p-3">
+            <p className="text-xs text-muted-foreground mb-2 text-center">Navigate Slides</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => {
+                  console.log('[Remote] Previous slide clicked');
+                  prevSlide();
+                }}
+                disabled={!isConnected || stageDevices.length === 0 || currentSlide <= 1}
+                className="flex items-center justify-center space-x-2 h-14"
+              >
+                <ChevronLeft className="h-5 w-5" />
+                <span className="text-sm font-medium">Previous</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => {
+                  console.log('[Remote] Next slide clicked');
+                  nextSlide();
+                }}
+                disabled={!isConnected || stageDevices.length === 0 || (totalSlides > 0 && currentSlide >= totalSlides)}
+                className="flex items-center justify-center space-x-2 h-14"
+              >
+                <span className="text-sm font-medium">Next</span>
+                <ChevronRight className="h-5 w-5" />
+              </Button>
             </div>
           </CardContent>
         </Card>
