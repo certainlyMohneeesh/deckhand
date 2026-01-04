@@ -1,24 +1,21 @@
 'use client';
 
 import { FileUpload } from '@/components/FileUpload';
-import { PresentationPlayer } from '@/components/PresentationPlayer';
-import { StageControls } from '@/components/StageControls';
 import { TeleprompterUpload } from '@/components/TeleprompterUpload';
-import { useSlideRenderer } from '@/hooks/useSlideRenderer';
-import { useRoom } from '@/contexts/RoomContext';
-import { FileMetadata } from '@/types/file';
-import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Loader2, Download, Smartphone, Zap, Globe, Monitor, Users } from 'lucide-react';
+import { Smartphone, Zap, Globe, Monitor, Loader2, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { FileMetadata } from '@/types/file';
+import { useSlideRenderer } from '@/hooks/useSlideRenderer';
+import { useRoom } from '@/contexts/RoomContext';
+import { useState } from 'react';
 
 export default function Home() {
   const router = useRouter();
   const [uploadedFile, setUploadedFile] = useState<FileMetadata | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(1);
   const { slides, isLoading, error, progress, renderPDF, renderPPTX, reset } = useSlideRenderer();
-  const { createRoom, roomId, setTotalSlides, goToSlide, currentSlide: roomCurrentSlide } = useRoom();
+  const { createRoom } = useRoom();
 
   const handleFileUpload = async (file: FileMetadata) => {
     setUploadedFile(file);
@@ -29,55 +26,25 @@ export default function Home() {
     if (file.type.includes('pdf')) {
       await renderPDF(actualFile, { scale: 2.5 });
     } else if (file.type.includes('presentation') || file.name.endsWith('.pptx')) {
-      // Pure client-side PPTX rendering - no backend needed!
       await renderPPTX(actualFile);
     }
   };
 
-  // Sync slides with room when rendered
-  useEffect(() => {
-    if (slides.length > 0 && roomId) {
-      setTotalSlides(slides.length);
-    }
-  }, [slides.length, roomId, setTotalSlides]);
-
-  // Sync current slide from room
-  useEffect(() => {
-    if (roomId && roomCurrentSlide !== currentSlide) {
-      setCurrentSlide(roomCurrentSlide);
-    }
-  }, [roomCurrentSlide, roomId]);
+  const handleStartPresentation = () => {
+    createRoom('stage');
+    router.push('/stage');
+  };
 
   const handleBackToUpload = () => {
     setUploadedFile(null);
-    setCurrentSlide(1);
     reset();
   };
 
-  const handleSlideChange = (slideIndex: number) => {
-    const newSlide = slideIndex + 1;
-    setCurrentSlide(newSlide);
-    
-    // Broadcast slide change if in a room
-    if (roomId) {
-      goToSlide(newSlide);
-    }
-  };
-
-  const handleStartPresentation = () => {
-    if (!roomId) {
-      createRoom('stage');
-    }
-  };
-
-  // Show presentation viewer when file is uploaded
-  if (uploadedFile) {
+  // Show processing state when file is uploaded and being rendered
+  if (uploadedFile && (isLoading || slides.length > 0)) {
     return (
-      <div className="min-h-screen p-4 sm:p-8">
-        {/* Stage Controls (Room QR, Devices) */}
-        {roomId && <StageControls />}
-        
-        <div className="max-w-7xl mx-auto space-y-4">
+      <div className="flex min-h-screen items-center justify-center p-4 sm:p-8">
+        <main className="w-full max-w-4xl space-y-8">
           {/* Header with back button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -85,6 +52,7 @@ export default function Home() {
                 variant="ghost"
                 size="sm"
                 onClick={handleBackToUpload}
+                disabled={isLoading}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -94,49 +62,50 @@ export default function Home() {
                   {uploadedFile.name}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {isLoading ? 'Processing...' : `Slide ${currentSlide} of ${slides.length}`}
+                  {isLoading ? 'Processing...' : `${slides.length} slides ready`}
                 </p>
               </div>
             </div>
-
-            {/* Start Presentation Button */}
-            {!roomId && !isLoading && slides.length > 0 && (
-              <Button onClick={handleStartPresentation} size="lg">
-                <Users className="h-4 w-4 mr-2" />
-                Start Presentation
-              </Button>
-            )}
           </div>
 
           {/* Loading State */}
           {isLoading && (
-            <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
+            <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-lg">
                 Rendering slides... {Math.round(progress)}%
               </p>
-              <Progress value={progress} className="w-64" />
+              <Progress value={progress} className="w-80 h-2" />
             </div>
           )}
 
           {/* Error State */}
-          {error && (
-            <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
+          {error && !isLoading && (
+            <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
               <p className="text-destructive text-lg">{error}</p>
               <Button onClick={handleBackToUpload}>Try Again</Button>
             </div>
           )}
 
-          {/* Presentation Player */}
+          {/* Ready State - Show Start Button */}
           {!isLoading && !error && slides.length > 0 && (
-            <PresentationPlayer
-              slides={slides}
-              onSlideChange={handleSlideChange}
-              externalSlideIndex={currentSlide - 1}  // Convert 1-indexed to 0-indexed
-              className="h-[80vh]"
-            />
+            <div className="flex flex-col items-center justify-center h-[60vh] space-y-6">
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
+                  <Monitor className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-semibold">Ready to Present</h3>
+                <p className="text-muted-foreground">
+                  {slides.length} slides loaded and ready to go
+                </p>
+              </div>
+              <Button onClick={handleStartPresentation} size="lg" className="min-w-[250px]">
+                <Monitor className="h-5 w-5 mr-2" />
+                Start Presentation
+              </Button>
+            </div>
           )}
-        </div>
+        </main>
       </div>
     );
   }
@@ -191,9 +160,7 @@ export default function Home() {
         {/* File Upload Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Presentation Upload */}
-          <FileUpload 
-            onFileUpload={handleFileUpload}
-          />
+          <FileUpload onFileUpload={handleFileUpload} />
 
           {/* Teleprompter Script Upload */}
           <TeleprompterUpload />

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { SlideData } from '@/components/PresentationPlayer';
+import { useSlides } from '@/contexts/SlideContext';
 
 interface RenderOptions {
   scale?: number;
@@ -38,18 +39,13 @@ async function initPDFJS() {
 }
 
 export function useSlideRenderer(): UseSlideRendererReturn {
-  const [slides, setSlides] = useState<SlideData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
+  const { slides, isLoading, error, progress, setSlides, setIsLoading, setError, setProgress, reset: contextReset } = useSlides();
   const abortRef = useRef(false);
 
   const reset = useCallback(() => {
-    setSlides([]);
-    setError(null);
-    setProgress(0);
+    contextReset();
     abortRef.current = false;
-  }, []);
+  }, [contextReset]);
 
   const renderPDF = useCallback(async (file: File, options: RenderOptions = {}) => {
     const { scale = 2, quality = 0.92 } = options;
