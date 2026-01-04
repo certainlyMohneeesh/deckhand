@@ -24,6 +24,11 @@ interface UseSocketOptions {
   onConnected?: () => void;
   onDisconnected?: () => void;
   onReconnecting?: () => void;
+  onFullscreenSync?: (data: { isFullscreen: boolean; roomId: string }) => void;
+  onPlaySync?: (data: { isPlaying: boolean; roomId: string }) => void;
+  onGridSync?: (data: { showGrid: boolean; roomId: string }) => void;
+  onPrivacySync?: (data: { isPrivacyMode: boolean; roomId: string }) => void;
+  onTimerSync?: (data: { timerState: any; roomId: string }) => void;
 }
 
 // Get Socket.io server URL dynamically based on environment
@@ -132,6 +137,32 @@ export function useSocket(options: UseSocketOptions = {}) {
       options.onRoomUpdated?.(data);
     });
 
+    // Presentation control events
+    socket.on('fullscreen-sync', (data) => {
+      console.log('[Socket] Fullscreen sync:', data);
+      options.onFullscreenSync?.(data);
+    });
+
+    socket.on('play-sync', (data) => {
+      console.log('[Socket] Play sync:', data);
+      options.onPlaySync?.(data);
+    });
+
+    socket.on('grid-sync', (data) => {
+      console.log('[Socket] Grid sync:', data);
+      options.onGridSync?.(data);
+    });
+
+    socket.on('privacy-sync', (data) => {
+      console.log('[Socket] Privacy sync:', data);
+      options.onPrivacySync?.(data);
+    });
+
+    socket.on('timer-sync', (data) => {
+      console.log('[Socket] Timer sync:', data);
+      options.onTimerSync?.(data);
+    });
+
     // Cleanup on unmount
     return () => {
       socket.disconnect();
@@ -201,6 +232,37 @@ export function useSocket(options: UseSocketOptions = {}) {
     socketRef.current.emit('update-role', payload);
   }, []);
 
+  // Presentation controls
+  const toggleFullscreen = useCallback((roomId: string, isFullscreen: boolean) => {
+    if (!socketRef.current?.connected) return;
+    socketRef.current.emit('toggle-fullscreen', { roomId, isFullscreen });
+  }, []);
+
+  const togglePlay = useCallback((roomId: string, isPlaying: boolean) => {
+    if (!socketRef.current?.connected) return;
+    socketRef.current.emit('toggle-play', { roomId, isPlaying });
+  }, []);
+
+  const toggleGrid = useCallback((roomId: string, showGrid: boolean) => {
+    if (!socketRef.current?.connected) return;
+    socketRef.current.emit('toggle-grid', { roomId, showGrid });
+  }, []);
+
+  const togglePrivacy = useCallback((roomId: string, isPrivacyMode: boolean) => {
+    if (!socketRef.current?.connected) return;
+    socketRef.current.emit('toggle-privacy', { roomId, isPrivacyMode });
+  }, []);
+
+  const updateTimer = useCallback((roomId: string, timerState: any) => {
+    if (!socketRef.current?.connected) return;
+    socketRef.current.emit('timer-update', { roomId, timerState });
+  }, []);
+
+  const timerTick = useCallback((roomId: string, remaining: number) => {
+    if (!socketRef.current?.connected) return;
+    socketRef.current.emit('timer-tick', { roomId, remaining });
+  }, []);
+
   return {
     socket: socketRef.current,
     isConnected,
@@ -211,5 +273,11 @@ export function useSocket(options: UseSocketOptions = {}) {
     sendAnnotation,
     clearAnnotations,
     updateRole,
+    toggleFullscreen,
+    togglePlay,
+    toggleGrid,
+    togglePrivacy,
+    updateTimer,
+    timerTick,
   };
 }

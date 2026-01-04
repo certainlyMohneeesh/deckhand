@@ -149,78 +149,84 @@ export default function TeleprompterPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Control Bar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur border-b border-gray-800">
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-2 sm:p-3 md:p-4 gap-2">
           {/* Left Controls */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLeave}
-              className="text-white hover:bg-white/10"
+              className="text-white hover:bg-white/10 flex-shrink-0"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Leave
+              <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Leave</span>
             </Button>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
               {isReconnecting ? (
-                <WifiOff className="h-4 w-4 text-yellow-500 animate-pulse" />
+                <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 animate-pulse flex-shrink-0" />
               ) : isConnected ? (
-                <Wifi className="h-4 w-4 text-green-500" />
+                <Wifi className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
               ) : (
-                <WifiOff className="h-4 w-4 text-red-500" />
+                <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-500 flex-shrink-0" />
               )}
-              <span className="text-sm">Room: {roomId}</span>
+              <span className="text-xs sm:text-sm truncate">
+                <span className="hidden sm:inline">Room: </span>{roomId}
+              </span>
             </div>
 
             {totalSlides > 0 && (
-              <div className="text-sm text-gray-400">
+              <div className="text-xs sm:text-sm text-gray-400 hidden md:block">
                 Slide {currentSlide}/{totalSlides}
               </div>
             )}
           </div>
 
           {/* Center Controls */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={decreaseFontSize}
-              className="text-white hover:bg-white/10"
+              className="text-white hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10 touch-manipulation"
             >
-              <Minus className="h-4 w-4" />
+              <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <span className="text-sm min-w-[4rem] text-center">{fontSize}px</span>
+            <span className="text-xs sm:text-sm min-w-[3rem] sm:min-w-[4rem] text-center">{fontSize}px</span>
             <Button
               variant="ghost"
               size="icon"
               onClick={increaseFontSize}
-              className="text-white hover:bg-white/10"
+              className="text-white hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10 touch-manipulation"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleAutoScroll}
-              className={`text-white hover:bg-white/10 ${isAutoScroll ? 'bg-white/20' : ''}`}
+              className={`text-white hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10 touch-manipulation ${
+                isAutoScroll ? 'bg-white/20' : ''
+              }`}
             >
-              {isAutoScroll ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isAutoScroll ? <Pause className="h-3 w-3 sm:h-4 sm:w-4" /> : <Play className="h-3 w-3 sm:h-4 sm:w-4" />}
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleMirror}
-              className={`text-white hover:bg-white/10 ${isMirrored ? 'bg-white/20' : ''}`}
+              className={`text-white hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10 touch-manipulation ${
+                isMirrored ? 'bg-white/20' : ''
+              }`}
             >
-              <FlipVertical className="h-4 w-4" />
+              <FlipVertical className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
 
           {/* Right Controls */}
-          <div>
+          <div className="flex-shrink-0">
             <input
               ref={fileInputRef}
               type="file"
@@ -232,23 +238,24 @@ export default function TeleprompterPage() {
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
-              className="text-white border-white/20 hover:bg-white/10"
+              className="text-white border-white/20 hover:bg-white/10 text-xs sm:text-sm h-8 sm:h-10 touch-manipulation"
             >
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Script
+              <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Upload Script</span>
+              <span className="sm:hidden">Upload</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Script Display */}
-      <div className="pt-20 pb-8">
+      <div className="pt-16 sm:pt-20 md:pt-24 pb-6 sm:pb-8">
         {script ? (
           <div
             ref={scriptRef}
-            className="max-w-4xl mx-auto px-8 overflow-y-auto"
+            className="max-w-2xl sm:max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 md:px-8 overflow-y-auto"
             style={{
-              height: 'calc(100vh - 8rem)',
+              height: 'calc(100vh - 6rem)',
               transform: isMirrored ? 'scaleY(-1)' : 'none',
             }}
           >
@@ -267,21 +274,21 @@ export default function TeleprompterPage() {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
-            <Card className="max-w-md bg-gray-900 border-gray-800">
+          <div className="flex items-center justify-center h-[calc(100vh-8rem)] px-4">
+            <Card className="max-w-sm sm:max-w-md bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 text-white">
-                  <BookOpen className="h-6 w-6" />
-                  <span>No Script Loaded</span>
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <span className="text-base sm:text-lg">No Script Loaded</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-gray-300">
-                <p className="text-sm">
+                <p className="text-xs sm:text-sm">
                   Upload a TXT or PDF file to display your speaker notes or script.
                 </p>
                 <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full"
+                  className="w-full min-h-[44px] touch-manipulation"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Script File
@@ -298,11 +305,11 @@ export default function TeleprompterPage() {
 
       {/* Current Slide Indicator */}
       {totalSlides > 0 && script && (
-        <div className="fixed bottom-4 right-4 bg-black/90 border border-gray-800 rounded-lg px-4 py-2">
-          <div className="text-sm text-gray-400">
+        <div className="fixed bottom-3 sm:bottom-4 right-3 sm:right-4 bg-black/90 border border-gray-800 rounded-lg px-3 sm:px-4 py-2">
+          <div className="text-xs sm:text-sm text-gray-400">
             Slide {currentSlide}/{totalSlides}
           </div>
-          <div className="w-32 bg-gray-800 rounded-full h-1 mt-2">
+          <div className="w-24 sm:w-32 bg-gray-800 rounded-full h-1 mt-2">
             <div 
               className="bg-white h-full rounded-full transition-all"
               style={{ width: `${(currentSlide / totalSlides) * 100}%` }}

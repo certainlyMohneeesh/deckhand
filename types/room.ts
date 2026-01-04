@@ -15,6 +15,12 @@ export interface RoomState {
   currentSlide: number;
   totalSlides: number;
   isConnected: boolean;
+  // Feature 1: Presentation control states
+  isFullscreen: boolean;
+  isPlaying: boolean;
+  showGrid: boolean;
+  // Feature 2: Privacy mode
+  isPrivacyMode: boolean;
 }
 
 export interface AnnotationStroke {

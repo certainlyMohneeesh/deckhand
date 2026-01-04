@@ -23,6 +23,14 @@ interface RoomContextValue extends RoomState {
   
   // Connection status
   isReconnecting: boolean;
+  
+  // Presentation controls
+  toggleFullscreen: (isFullscreen: boolean) => void;
+  togglePlay: (isPlaying: boolean) => void;
+  toggleGrid: (showGrid: boolean) => void;
+  togglePrivacy: (isPrivacyMode: boolean) => void;
+  updateTimer: (timerState: any) => void;
+  timerTick: (remaining: number) => void;
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null);
@@ -49,6 +57,10 @@ export function RoomProvider({ children }: RoomProviderProps) {
     currentSlide: 1,
     totalSlides: 0,
     isConnected: false,
+    isFullscreen: false,
+    isPlaying: false,
+    showGrid: false,
+    isPrivacyMode: false,
   });
 
   // Socket connection with event handlers
@@ -61,6 +73,12 @@ export function RoomProvider({ children }: RoomProviderProps) {
     sendAnnotation,
     clearAnnotations,
     updateRole,
+    toggleFullscreen: socketToggleFullscreen,
+    togglePlay: socketTogglePlay,
+    toggleGrid: socketToggleGrid,
+    togglePrivacy: socketTogglePrivacy,
+    updateTimer: socketUpdateTimer,
+    timerTick: socketTimerTick,
   } = useSocket({
     onConnected: () => {
       setRoomState(prev => ({ ...prev, isConnected: true }));
@@ -93,6 +111,24 @@ export function RoomProvider({ children }: RoomProviderProps) {
           ? data.totalSlides 
           : prev.totalSlides,
       }));
+    },
+    // Feature 1: Control sync handlers
+    onFullscreenSync: (data) => {
+      console.log('[RoomContext] Fullscreen sync:', data.isFullscreen);
+      setRoomState(prev => ({ ...prev, isFullscreen: data.isFullscreen }));
+    },
+    onPlaySync: (data) => {
+      console.log('[RoomContext] Play sync:', data.isPlaying);
+      setRoomState(prev => ({ ...prev, isPlaying: data.isPlaying }));
+    },
+    onGridSync: (data) => {
+      console.log('[RoomContext] Grid sync:', data.showGrid);
+      setRoomState(prev => ({ ...prev, showGrid: data.showGrid }));
+    },
+    // Feature 2: Privacy mode sync handler
+    onPrivacySync: (data) => {
+      console.log('[RoomContext] Privacy sync:', data.isPrivacyMode);
+      setRoomState(prev => ({ ...prev, isPrivacyMode: data.isPrivacyMode }));
     },
   });
 
@@ -157,6 +193,10 @@ export function RoomProvider({ children }: RoomProviderProps) {
         currentSlide: 1,
         totalSlides: 0,
         isConnected,
+        isFullscreen: false,
+        isPlaying: false,
+        showGrid: false,
+        isPrivacyMode: false,
       });
       
       toast.info('Left room');
@@ -221,6 +261,43 @@ export function RoomProvider({ children }: RoomProviderProps) {
     }
   }, [roomState.roomId, roomState.role, updateRole]);
 
+  // Presentation control wrappers
+  const toggleFullscreen = useCallback((isFullscreen: boolean) => {
+    if (roomState.roomId) {
+      socketToggleFullscreen(roomState.roomId, isFullscreen);
+    }
+  }, [roomState.roomId, socketToggleFullscreen]);
+
+  const togglePlay = useCallback((isPlaying: boolean) => {
+    if (roomState.roomId) {
+      socketTogglePlay(roomState.roomId, isPlaying);
+    }
+  }, [roomState.roomId, socketTogglePlay]);
+
+  const toggleGrid = useCallback((showGrid: boolean) => {
+    if (roomState.roomId) {
+      socketToggleGrid(roomState.roomId, showGrid);
+    }
+  }, [roomState.roomId, socketToggleGrid]);
+
+  const togglePrivacy = useCallback((isPrivacyMode: boolean) => {
+    if (roomState.roomId) {
+      socketTogglePrivacy(roomState.roomId, isPrivacyMode);
+    }
+  }, [roomState.roomId, socketTogglePrivacy]);
+
+  const updateTimer = useCallback((timerState: any) => {
+    if (roomState.roomId) {
+      socketUpdateTimer(roomState.roomId, timerState);
+    }
+  }, [roomState.roomId, socketUpdateTimer]);
+
+  const timerTick = useCallback((remaining: number) => {
+    if (roomState.roomId) {
+      socketTimerTick(roomState.roomId, remaining);
+    }
+  }, [roomState.roomId, socketTimerTick]);
+
   // Auto-rejoin room on reconnection
   useEffect(() => {
     if (isConnected && roomState.roomId && roomState.role && !isReconnecting) {
@@ -250,6 +327,12 @@ export function RoomProvider({ children }: RoomProviderProps) {
     prevSlide,
     setTotalSlides,
     updateDeviceName,
+    toggleFullscreen,
+    togglePlay,
+    toggleGrid,
+    togglePrivacy,
+    updateTimer,
+    timerTick,
   };
 
   return (

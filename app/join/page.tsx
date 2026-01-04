@@ -142,11 +142,11 @@ function JoinRoomContent() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Join Presentation</CardTitle>
-          <CardDescription>
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="space-y-1 sm:space-y-2">
+          <CardTitle className="text-xl sm:text-2xl">Join Presentation</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Enter the room code and select your device role
           </CardDescription>
         </CardHeader>
@@ -161,25 +161,25 @@ function JoinRoomContent() {
 
           {/* Room Code Input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Room Code</label>
+            <label className="text-sm sm:text-base font-medium">Room Code</label>
             <input
               type="text"
               value={roomCode}
               onChange={handleRoomCodeChange}
               placeholder="ABC123"
-              className="w-full px-4 py-3 text-2xl font-mono tracking-wider text-center uppercase rounded-lg border-2 border-border focus:border-primary focus:outline-none bg-background"
+              className="w-full px-3 sm:px-4 py-3 sm:py-4 text-xl sm:text-2xl md:text-3xl font-mono tracking-wider text-center uppercase rounded-lg border-2 border-border focus:border-primary focus:outline-none bg-background touch-manipulation"
               maxLength={6}
               autoFocus
             />
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground text-center">
               Enter the 6-character code from the host
             </p>
           </div>
 
           {/* Role Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Select Device Role</label>
-            <div className="space-y-2">
+            <label className="text-sm sm:text-base font-medium">Select Device Role</label>
+            <div className="space-y-2 sm:space-y-3">
               {roles.map((role) => {
                 const Icon = role.icon;
                 const isSelected = selectedRole === role.value;
@@ -188,19 +188,19 @@ function JoinRoomContent() {
                   <button
                     key={role.value}
                     onClick={() => setSelectedRole(role.value)}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                    className={`w-full p-3 sm:p-4 md:p-5 rounded-lg border-2 transition-all text-left touch-manipulation min-h-[72px] sm:min-h-[80px] ${
                       isSelected
                         ? `${role.color} scale-[1.02]`
-                        : 'border-border hover:border-muted-foreground'
+                        : 'border-border hover:border-muted-foreground active:scale-[0.98]'
                     }`}
                   >
-                    <div className="flex items-start space-x-3">
-                      <Icon className={`h-5 w-5 mt-0.5 ${
+                    <div className="flex items-start space-x-3 sm:space-x-4">
+                      <Icon className={`h-5 w-5 sm:h-6 sm:w-6 mt-0.5 flex-shrink-0 ${
                         isSelected ? '' : 'text-muted-foreground'
                       }`} />
-                      <div className="flex-1">
-                        <div className="font-medium">{role.label}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm sm:text-base">{role.label}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                           {role.description}
                         </div>
                         {role.value === 'stage' && (
@@ -224,9 +224,9 @@ function JoinRoomContent() {
           {/* File Upload for Stage Role */}
           {selectedRole === 'stage' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Upload Presentation</label>
+              <label className="text-sm sm:text-base font-medium">Upload Presentation</label>
               {!uploadedFile ? (
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-background">
+                <label className="flex flex-col items-center justify-center w-full h-32 sm:h-36 md:h-40 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-background touch-manipulation">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
                     <p className="mb-1 text-sm text-foreground">
@@ -266,7 +266,7 @@ function JoinRoomContent() {
           <Button
             onClick={handleJoinRoom}
             disabled={!selectedRole || !isValidRoomCode(roomCode) || !isConnected || isJoining || (selectedRole === 'stage' && !uploadedFile)}
-            className="w-full"
+            className="w-full text-base sm:text-lg min-h-[48px] sm:min-h-[52px] touch-manipulation"
             size="lg"
           >
             {isJoining ? (
