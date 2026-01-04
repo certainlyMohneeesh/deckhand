@@ -104,6 +104,8 @@ function JoinRoomContent() {
           router.push('/remote');
         } else if (selectedRole === 'teleprompter') {
           router.push('/teleprompter');
+        } else if (selectedRole === 'stage') {
+          router.push('/stage');
         } else {
           router.push('/');
         }
