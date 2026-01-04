@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { normalizeRoomCode, isValidRoomCode } from '@/lib/room';
 import { DeviceRole } from '@/types/room';
 import { toast } from 'sonner';
 
-export default function JoinRoomPage() {
+function JoinRoomContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { joinRoom, isConnected } = useRoom();
@@ -197,5 +197,17 @@ export default function JoinRoomPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function JoinRoomPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <JoinRoomContent />
+    </Suspense>
   );
 }
