@@ -4,11 +4,12 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Smartphone, Monitor, BookOpen, Loader2 } from 'lucide-react';
+import { Smartphone, Monitor, BookOpen, Loader2, Upload, X } from 'lucide-react';
 import { useRoom } from '@/contexts/RoomContext';
 import { normalizeRoomCode, isValidRoomCode } from '@/lib/room';
 import { DeviceRole } from '@/types/room';
 import { toast } from 'sonner';
+import { FileMetadata } from '@/types/file';
 
 function JoinRoomContent() {
   const router = useRouter();
@@ -18,6 +19,7 @@ function JoinRoomContent() {
   const [roomCode, setRoomCode] = useState('');
   const [selectedRole, setSelectedRole] = useState<DeviceRole | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<FileMetadata | null>(null);
 
   // Auto-fill room code from URL
   useEffect(() => {
@@ -32,9 +34,52 @@ function JoinRoomContent() {
     setRoomCode(value.slice(0, 6)); // Limit to 6 characters
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const isPDF = file.type === 'application/pdf';
+    const isPPTX = file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+                   file.name.endsWith('.pptx');
+
+    if (!isPDF && !isPPTX) {
+      toast.error('Please upload a PDF or PPTX file');
+      return;
+    }
+
+    // Validate file size (50MB max)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error('File size must be less than 50MB');
+      return;
+    }
+
+    const fileMetadata: FileMetadata = {
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+    };
+
+    setUploadedFile(fileMetadata);
+    toast.success(`File "${file.name}" uploaded`);
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
+  };
+
   const handleJoinRoom = async () => {
     if (!selectedRole) {
       toast.error('Please select a device role');
+      return;
+    }
+
+    // Require file upload for Stage role
+    if (selectedRole === 'stage' && !uploadedFile) {
+      toast.error('Please upload a presentation file for Stage Display');
       return;
     }
 
@@ -156,6 +201,11 @@ function JoinRoomContent() {
                         <div className="text-xs text-muted-foreground mt-1">
                           {role.description}
                         </div>
+                        {role.value === 'stage' && (
+                          <div className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                            ⚠️ Requires file upload
+                          </div>
+                        )}
                       </div>
                       {isSelected && (
                         <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
@@ -169,10 +219,51 @@ function JoinRoomContent() {
             </div>
           </div>
 
+          {/* File Upload for Stage Role */}
+          {selectedRole === 'stage' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Upload Presentation</label>
+              {!uploadedFile ? (
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-background">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <p className="mb-1 text-sm text-foreground">
+                      <span className="font-semibold">Click to upload</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">PDF or PPTX (Max 50MB)</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              ) : (
+                <div className="flex items-center justify-between p-4 border-2 border-primary rounded-lg bg-primary/5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{uploadedFile.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemoveFile}
+                    className="ml-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Join Button */}
           <Button
             onClick={handleJoinRoom}
-            disabled={!selectedRole || !isValidRoomCode(roomCode) || !isConnected || isJoining}
+            disabled={!selectedRole || !isValidRoomCode(roomCode) || !isConnected || isJoining || (selectedRole === 'stage' && !uploadedFile)}
             className="w-full"
             size="lg"
           >

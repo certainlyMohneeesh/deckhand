@@ -156,6 +156,25 @@ export default function Home() {
           </p>
         </div>
 
+        {/* PDF-Only Notice */}
+        <div className="max-w-2xl mx-auto bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-900 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <div className="text-amber-600 dark:text-amber-500 text-xl">⚠️</div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                PDF Recommended for Best Compatibility
+              </h3>
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                For best results, please convert PPTX files to PDF before uploading. 
+                While PPTX is supported, PDF provides better compatibility and rendering. 
+                <span className="font-medium block mt-1">
+                  PowerPoint: File → Save As → PDF
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
