@@ -19,6 +19,8 @@ export interface RoomState {
   isFullscreen: boolean;
   isPlaying: boolean;
   showGrid: boolean;
+  // Feature 2: Privacy mode
+  isPrivacyMode: boolean;
 }
 
 export interface AnnotationStroke {

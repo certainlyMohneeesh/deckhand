@@ -60,6 +60,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
     isFullscreen: false,
     isPlaying: false,
     showGrid: false,
+    isPrivacyMode: false,
   });
 
   // Socket connection with event handlers
@@ -123,6 +124,11 @@ export function RoomProvider({ children }: RoomProviderProps) {
     onGridSync: (data) => {
       console.log('[RoomContext] Grid sync:', data.showGrid);
       setRoomState(prev => ({ ...prev, showGrid: data.showGrid }));
+    },
+    // Feature 2: Privacy mode sync handler
+    onPrivacySync: (data) => {
+      console.log('[RoomContext] Privacy sync:', data.isPrivacyMode);
+      setRoomState(prev => ({ ...prev, isPrivacyMode: data.isPrivacyMode }));
     },
   });
 
@@ -190,6 +196,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
         isFullscreen: false,
         isPlaying: false,
         showGrid: false,
+        isPrivacyMode: false,
       });
       
       toast.info('Left room');

@@ -18,7 +18,9 @@ import {
   Minimize,
   Play,
   Pause,
-  Grid3x3
+  Grid3x3,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -39,10 +41,13 @@ export default function RemotePage() {
     toggleFullscreen,
     togglePlay,
     toggleGrid,
+    togglePrivacy,
     // Feature 1: Get control states from RoomContext
     isFullscreen: roomIsFullscreen,
     isPlaying: roomIsPlaying,
     showGrid: roomShowGrid,
+    // Feature 2: Privacy mode state
+    isPrivacyMode: roomIsPrivacyMode,
   } = useRoom();
 
   const [slidePreview, setSlidePreview] = useState<string | null>(null);
@@ -154,6 +159,14 @@ export default function RemotePage() {
     const newState = !roomShowGrid;
     console.log('[Remote] Toggling grid view:', newState, 'roomId:', roomId);
     toggleGrid(newState);
+  };
+
+  // Feature 2: Privacy mode handler
+  const handleTogglePrivacy = () => {
+    const newState = !roomIsPrivacyMode;
+    console.log('[Remote] Toggling privacy mode:', newState, 'roomId:', roomId);
+    togglePrivacy(newState);
+    toast.success(`Privacy Screen ${newState ? 'ON' : 'OFF'}`);
   };
 
   const stageDevices = connectedDevices.filter(d => d.role === 'stage');
@@ -312,6 +325,28 @@ export default function RemotePage() {
                 <span className="text-xs">Grid View</span>
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Feature 2: Privacy Screen Control */}
+        <Card className="bg-background/95 backdrop-blur">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-3">Privacy Mode</p>
+            <Button
+              variant={roomIsPrivacyMode ? "default" : "outline"}
+              size="lg"
+              onClick={handleTogglePrivacy}
+              disabled={!isConnected || stageDevices.length === 0}
+              className="flex items-center justify-center w-full h-20 space-x-3"
+            >
+              {roomIsPrivacyMode ? <EyeOff className="h-7 w-7" /> : <Eye className="h-7 w-7" />}
+              <span className="text-base font-semibold">
+                {roomIsPrivacyMode ? 'Privacy ON' : 'Privacy OFF'}
+              </span>
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Hide slides and show logo on Stage
+            </p>
           </CardContent>
         </Card>
 

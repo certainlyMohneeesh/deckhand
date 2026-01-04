@@ -2,6 +2,7 @@
 
 import { PresentationPlayer } from '@/components/PresentationPlayer';
 import { StageControls } from '@/components/StageControls';
+import { PrivacyScreen } from '@/components/PrivacyScreen';
 import { useSlideRenderer } from '@/hooks/useSlideRenderer';
 import { useRoom } from '@/contexts/RoomContext';
 import { useState, useEffect } from 'react';
@@ -20,10 +21,13 @@ export default function StagePage() {
     setTotalSlides, 
     goToSlide, 
     currentSlide: roomCurrentSlide,
+    togglePrivacy,
     // Feature 1: Get control states from RoomContext
     isFullscreen,
     isPlaying,
-    showGrid
+    showGrid,
+    // Feature 2: Privacy mode
+    isPrivacyMode,
   } = useRoom();
 
   // Sync slides with room when rendered
@@ -81,8 +85,37 @@ export default function StagePage() {
     console.log('[Stage] Grid state changed:', showGrid);
   }, [showGrid]);
 
+  // Feature 2: Handle ESC key to exit privacy mode
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isPrivacyMode) {
+        togglePrivacy(false);
+        toast.info('Privacy mode disabled');
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isPrivacyMode, togglePrivacy]);
+
+  // Feature 2: Log privacy mode changes
+  useEffect(() => {
+    console.log('[Stage] Privacy mode changed:', isPrivacyMode);
+    if (isPrivacyMode) {
+      toast.info('Privacy Screen Active', {
+        description: 'Press ESC to exit',
+        duration: 3000,
+      });
+    }
+  }, [isPrivacyMode]);
+
   return (
     <div className="min-h-screen p-4 sm:p-8">
+      {/* Feature 2: Privacy Screen Overlay */}
+      {isPrivacyMode && (
+        <PrivacyScreen onExit={() => togglePrivacy(false)} />
+      )}
+
       {/* Stage Controls (Room QR, Devices) */}
       {roomId && <StageControls />}
       
