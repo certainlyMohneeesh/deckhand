@@ -15,6 +15,10 @@ export interface RoomState {
   currentSlide: number;
   totalSlides: number;
   isConnected: boolean;
+  // Feature 1: Presentation control states
+  isFullscreen: boolean;
+  isPlaying: boolean;
+  showGrid: boolean;
 }
 
 export interface AnnotationStroke {

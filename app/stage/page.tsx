@@ -9,12 +9,22 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function StagePage() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(1);
   const { slides, isLoading, error, progress } = useSlideRenderer();
-  const { roomId, setTotalSlides, goToSlide, currentSlide: roomCurrentSlide } = useRoom();
+  const { 
+    roomId, 
+    setTotalSlides, 
+    goToSlide, 
+    currentSlide: roomCurrentSlide,
+    // Feature 1: Get control states from RoomContext
+    isFullscreen,
+    isPlaying,
+    showGrid
+  } = useRoom();
 
   // Sync slides with room when rendered
   useEffect(() => {
@@ -50,6 +60,26 @@ export default function StagePage() {
       router.push('/');
     }
   }, [roomId, isLoading, router]);
+
+  // Log control state changes for debugging
+  useEffect(() => {
+    console.log('[Stage] Fullscreen state changed:', isFullscreen);
+    if (isFullscreen && !document.fullscreenElement) {
+      // Fullscreen requested remotely but not active - prompt user
+      toast.info('Fullscreen requested', {
+        description: 'Press F or click the fullscreen button',
+        duration: 4000,
+      });
+    }
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    console.log('[Stage] Play state changed:', isPlaying);
+  }, [isPlaying]);
+
+  useEffect(() => {
+    console.log('[Stage] Grid state changed:', showGrid);
+  }, [showGrid]);
 
   return (
     <div className="min-h-screen p-4 sm:p-8">
@@ -103,7 +133,10 @@ export default function StagePage() {
           <PresentationPlayer
             slides={slides}
             onSlideChange={handleSlideChange}
-            externalSlideIndex={currentSlide - 1}  // Convert 1-indexed to 0-indexed
+            externalSlideIndex={currentSlide - 1}
+            externalFullscreen={isFullscreen}
+            externalAutoPlay={isPlaying}
+            externalShowOverview={showGrid}
             className="h-[80vh]"
           />
         )}

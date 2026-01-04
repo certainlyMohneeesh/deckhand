@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRoom } from '@/contexts/RoomContext';
+import { useSlides } from '@/contexts/SlideContext';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -12,12 +13,18 @@ import {
   Wifi, 
   WifiOff,
   ArrowLeft,
-  Home
+  Home,
+  Maximize,
+  Minimize,
+  Play,
+  Pause,
+  Grid3x3
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function RemotePage() {
   const router = useRouter();
+  const { slides } = useSlides();
   const { 
     roomId, 
     currentSlide, 
@@ -26,13 +33,31 @@ export default function RemotePage() {
     isReconnecting,
     nextSlide, 
     prevSlide,
+    goToSlide,
     role,
     connectedDevices,
+    toggleFullscreen,
+    togglePlay,
+    toggleGrid,
+    // Feature 1: Get control states from RoomContext
+    isFullscreen: roomIsFullscreen,
+    isPlaying: roomIsPlaying,
+    showGrid: roomShowGrid,
   } = useRoom();
 
   const [slidePreview, setSlidePreview] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Sync control states from RoomContext (for display purposes)
+  useEffect(() => {
+    console.log('[Remote] Syncing showGrid from room:', roomShowGrid);
+  }, [roomShowGrid]);
+
+  // Debug: Check if slides are available
+  useEffect(() => {
+    console.log('[Remote] Slides available:', slides.length, 'totalSlides:', totalSlides);
+  }, [slides.length, totalSlides]);
 
   useEffect(() => {
     // Redirect if not in a room or not a remote device
@@ -104,7 +129,35 @@ export default function RemotePage() {
     router.push('/');
   };
 
+  // Feature 1: Control handlers
+  const handleToggleFullscreen = () => {
+    const newState = !roomIsFullscreen;
+    console.log('[Remote] Toggling fullscreen:', newState, 'roomId:', roomId);
+    toggleFullscreen(newState);
+    if (newState) {
+      toast.info('Fullscreen requested on Stage', {
+        description: 'Press F on Stage or use its fullscreen button',
+      });
+    } else {
+      toast.success('Fullscreen OFF');
+    }
+  };
+
+  const handleTogglePlay = () => {
+    const newState = !roomIsPlaying;
+    console.log('[Remote] Toggling auto-play:', newState, 'roomId:', roomId);
+    togglePlay(newState);
+    toast.success(`Auto-play ${newState ? 'ON' : 'OFF'}`);
+  };
+
+  const handleToggleGrid = () => {
+    const newState = !roomShowGrid;
+    console.log('[Remote] Toggling grid view:', newState, 'roomId:', roomId);
+    toggleGrid(newState);
+  };
+
   const stageDevices = connectedDevices.filter(d => d.role === 'stage');
+  const currentSlideData = slides[currentSlide - 1];
 
   return (
     <div 
@@ -176,6 +229,22 @@ export default function RemotePage() {
           </Card>
         )}
 
+        {/* Feature 1: Stage Preview */}
+        {currentSlideData && (
+          <Card className="bg-background/95 backdrop-blur">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-2">Current Slide Preview</p>
+              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                <img 
+                  src={currentSlideData.imageUrl} 
+                  alt={`Slide ${currentSlide}`}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Current Slide Display */}
         <Card className="bg-background/95 backdrop-blur">
           <CardContent className="p-6">
@@ -205,31 +274,108 @@ export default function RemotePage() {
           </CardContent>
         </Card>
 
-        {/* Navigation Controls */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Previous Button */}
-          <Button
-            onClick={handlePrevSlide}
-            disabled={!isConnected || currentSlide <= 1}
-            size="lg"
-            variant="outline"
-            className="h-32 flex flex-col space-y-2"
-          >
-            <ChevronLeft className="h-12 w-12" />
-            <span className="text-lg font-semibold">Previous</span>
-          </Button>
+        {/* Feature 1: Presentation Controls */}
+        <Card className="bg-background/95 backdrop-blur">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-3">Presentation Controls</p>
+            <div className="grid grid-cols-3 gap-3">
+              <Button
+                variant={roomIsFullscreen ? "default" : "outline"}
+                size="lg"
+                onClick={handleToggleFullscreen}
+                disabled={!isConnected || stageDevices.length === 0}
+                className="flex flex-col h-20 space-y-2"
+              >
+                {roomIsFullscreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
+                <span className="text-xs">Fullscreen</span>
+              </Button>
+              
+              <Button
+                variant={roomIsPlaying ? "default" : "outline"}
+                size="lg"
+                onClick={handleTogglePlay}
+                disabled={!isConnected || stageDevices.length === 0}
+                className="flex flex-col h-20 space-y-2"
+              >
+                {roomIsPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                <span className="text-xs">Auto Play</span>
+              </Button>
+              
+              <Button
+                variant={roomShowGrid ? "default" : "outline"}
+                size="lg"
+                onClick={handleToggleGrid}
+                disabled={!isConnected || stageDevices.length === 0}
+                className="flex flex-col h-20 space-y-2"
+              >
+                <Grid3x3 className="h-6 w-6" />
+                <span className="text-xs">Grid View</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Next Button */}
-          <Button
-            onClick={handleNextSlide}
-            disabled={!isConnected || (totalSlides > 0 && currentSlide >= totalSlides)}
-            size="lg"
-            className="h-32 flex flex-col space-y-2"
-          >
-            <ChevronRight className="h-12 w-12" />
-            <span className="text-lg font-semibold">Next</span>
-          </Button>
-        </div>
+        {/* Feature 1: Grid View - Shows on Remote when toggled */}
+        {roomShowGrid && (
+          <Card className="bg-background/95 backdrop-blur">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-3">Slide Overview - Tap to Jump</p>
+              {slides.length > 0 ? (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+                  {slides.map((slide, index) => (
+                  <button
+                    key={slide.id}
+                    onClick={() => {
+                      goToSlide(index + 1);
+                      toast.success(`Jumped to slide ${index + 1}`);
+                    }}
+                    className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
+                      index + 1 === currentSlide 
+                        ? 'border-primary ring-2 ring-primary' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <img 
+                      src={slide.imageUrl} 
+                      alt={`Slide ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs py-1 text-center font-medium">
+                      {index + 1}
+                    </div>
+                  </button>
+                ))}
+                </div>
+              ) : totalSlides > 0 ? (
+                // Show numbered grid when slides not loaded locally but we know total count
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-96 overflow-y-auto">
+                  {Array.from({ length: totalSlides }, (_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        goToSlide(index + 1);
+                        toast.success(`Jumped to slide ${index + 1}`);
+                      }}
+                      className={`aspect-video rounded-lg flex items-center justify-center border-2 transition-all ${
+                        index + 1 === currentSlide 
+                          ? 'border-primary bg-primary text-primary-foreground font-bold' 
+                          : 'border-border bg-muted hover:border-primary/50 hover:bg-muted/80'
+                      }`}
+                    >
+                      <span className="text-lg font-semibold">{index + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Grid3x3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Grid view is active on Stage display</p>
+                  <p className="text-xs mt-2">Navigate slides to populate grid</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Keyboard Shortcuts Hint */}
         <Card className="bg-muted/50">

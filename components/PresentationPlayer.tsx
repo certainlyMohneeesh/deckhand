@@ -18,6 +18,9 @@ interface PresentationPlayerProps {
   slides: SlideData[];
   onSlideChange?: (slideIndex: number) => void;
   externalSlideIndex?: number;  // External slide index from room sync
+  externalFullscreen?: boolean;  // Feature 1: External fullscreen control
+  externalAutoPlay?: boolean;    // Feature 1: External auto-play control
+  externalShowOverview?: boolean; // Feature 1: External grid view control
   className?: string;
 }
 
@@ -32,6 +35,9 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
   slides,
   onSlideChange,
   externalSlideIndex,
+  externalFullscreen,
+  externalAutoPlay,
+  externalShowOverview,
   className,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -61,6 +67,40 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
       }
     }
   }, [externalSlideIndex, totalSlides]);
+
+  // Feature 1: Sync external controls
+  // Note: Fullscreen API requires user gesture, so we update internal state
+  // User can then click the fullscreen button or press 'f' key
+  useEffect(() => {
+    if (externalFullscreen !== undefined) {
+      console.log('[PresentationPlayer] External fullscreen state:', externalFullscreen);
+      setIsFullscreen(externalFullscreen);
+      
+      // Only attempt fullscreen if we're already in fullscreen mode (for exit)
+      if (!externalFullscreen && document.fullscreenElement) {
+        console.log('[PresentationPlayer] Exiting fullscreen...');
+        document.exitFullscreen().catch(err => {
+          console.error('[PresentationPlayer] Exit fullscreen failed:', err);
+        });
+      }
+      // Note: Entering fullscreen remotely not possible due to browser security
+      // The internal button state will show "fullscreen requested" state
+    }
+  }, [externalFullscreen]);
+
+  useEffect(() => {
+    if (externalAutoPlay !== undefined) {
+      console.log('[PresentationPlayer] External autoPlay changed to:', externalAutoPlay);
+      setIsAutoPlaying(externalAutoPlay);
+    }
+  }, [externalAutoPlay]);
+
+  useEffect(() => {
+    if (externalShowOverview !== undefined) {
+      console.log('[PresentationPlayer] External showOverview changed to:', externalShowOverview);
+      setShowOverview(externalShowOverview);
+    }
+  }, [externalShowOverview]);
 
   // Navigation functions
   const goToSlide = useCallback((index: number) => {
