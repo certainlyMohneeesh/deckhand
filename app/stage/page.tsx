@@ -8,16 +8,16 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { 
-  Loader2, 
-  Maximize2, 
-  WifiOff, 
-  QrCode, 
-  Copy, 
-  Check, 
-  Users, 
-  Smartphone, 
-  Monitor, 
+import {
+  Loader2,
+  Maximize2,
+  WifiOff,
+  QrCode,
+  Copy,
+  Check,
+  Users,
+  Smartphone,
+  Monitor,
   BookOpen,
   Wifi
 } from 'lucide-react';
@@ -31,10 +31,10 @@ export default function StagePage() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(1);
   const { slides, isLoading, error, progress } = useSlideRenderer();
-  const { 
-    roomId, 
-    setTotalSlides, 
-    goToSlide, 
+  const {
+    roomId,
+    setTotalSlides,
+    goToSlide,
     currentSlide: roomCurrentSlide,
     togglePrivacy,
     isFullscreen,
@@ -97,7 +97,7 @@ export default function StagePage() {
   const handleSlideChange = (slideIndex: number) => {
     const newSlide = slideIndex + 1;
     setCurrentSlide(newSlide);
-    
+
     // Broadcast slide change if in a room
     if (roomId) {
       goToSlide(newSlide);
@@ -175,33 +175,33 @@ export default function StagePage() {
 
         {/* Privacy Overlay */}
         {isPrivacyMode && (
-          <PrivacyScreen 
-            onExit={() => togglePrivacy(false)} 
+          <PrivacyScreen
+            onExit={() => togglePrivacy(false)}
           />
         )}
       </div>
 
-      {/* Bottom Info Bar - Fixed height */}
-      <div className="h-48 bg-background border-t border-border p-6 flex items-start justify-between gap-8 shrink-0 z-50">
-        
+      {/* Bottom Info Bar - Responsive */}
+      <div className="h-auto lg:h-48 bg-background border-t border-border p-4 lg:p-6 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6 lg:gap-8 shrink-0 z-50 overflow-y-auto">
+
         {/* Left: Room Info & QR */}
-        <div className="flex gap-6 h-full">
+        <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-6 h-full w-full lg:w-auto">
           {qrCodeUrl && (
-            <div className="h-full aspect-square bg-white p-2 rounded-lg shadow-sm">
-              <Image 
-                src={qrCodeUrl} 
-                alt="Room QR Code" 
-                width={150} 
+            <div className="h-32 w-32 lg:h-full lg:w-auto aspect-square bg-white p-2 rounded-lg shadow-sm shrink-0">
+              <Image
+                src={qrCodeUrl}
+                alt="Room QR Code"
+                width={150}
                 height={150}
                 className="w-full h-full object-contain"
               />
             </div>
           )}
-          
-          <div className="flex flex-col justify-between py-1">
-            <div>
+
+          <div className="flex flex-col justify-between py-1 w-full sm:w-auto gap-4 lg:gap-0">
+            <div className="text-center sm:text-left">
               <h3 className="text-sm font-medium text-muted-foreground mb-1">Room Code</h3>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center sm:justify-start gap-3">
                 <span className="text-4xl font-mono font-bold tracking-wider text-primary">
                   {roomId}
                 </span>
@@ -210,15 +210,15 @@ export default function StagePage() {
                 </Button>
               </div>
             </div>
-            
-            <Button variant="secondary" size="sm" className="w-full" onClick={handleCopyUrl}>
+
+            <Button variant="secondary" size="sm" className="w-full sm:w-auto px-6 h-8 text-xs font-medium" onClick={handleCopyUrl}>
               Copy Join URL
             </Button>
           </div>
         </div>
 
         {/* Center: Slide Controls & Status */}
-        <div className="flex-1 flex flex-col items-center justify-center h-full gap-4">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full">
           <div className="flex items-center gap-2 text-sm font-medium">
             <div className={cn("w-2 h-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500 animate-pulse")} />
             <span className={isConnected ? "text-muted-foreground" : "text-red-500"}>
@@ -236,7 +236,7 @@ export default function StagePage() {
             </span>
             <Button variant="outline" size="icon" onClick={() => handleSlideChange(currentSlide)} disabled={currentSlide >= slides.length}>
               <span className="sr-only">Next</span>
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M6.1584 3.13523C6.35985 2.94621 6.67627 2.95603 6.86529 3.15749L10.6153 7.15749C10.7956 7.34982 10.7956 7.6491 10.6153 7.84143L6.86529 11.8414C6.67627 12.0429 6.35985 12.0527 6.1584 11.8637C5.95694 11.6746 5.94712 11.3582 6.13614 11.1568L9.56554 7.49946L6.13614 3.84211C5.94712 3.64066 5.95694 3.32423 6.1584 3.13523Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M6.1584 3.13523C6.35985 2.94621 6.67627 2.95603 6.86529 3.15749L10.6153 7.15749C10.7956 7.34982 10.7956 7.6491 10.6153 7.84143L6.86529 11.8414C6.67627 12.0429 6.35985 12.0527 6.1584 11.8637C5.95694 11.6746 5.94712 11.3582 6.1584 11.1568L9.56554 7.49946L6.13614 3.84211C5.94712 3.64066 5.94712 3.32423 6.1584 3.13523Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
             </Button>
             <Button variant="ghost" size="icon" onClick={toggleFullscreenHandler}>
               <Maximize2 className="h-4 w-4" />
@@ -245,35 +245,35 @@ export default function StagePage() {
         </div>
 
         {/* Right: Connected Devices */}
-        <div className="w-72 h-full flex flex-col">
-          <div className="flex items-center gap-2 mb-3 text-muted-foreground">
-            <Users className="w-4 h-4" />
-            <span className="text-sm font-medium">Connected Devices ({connectedDevices.length})</span>
+        <div className="w-full lg:w-60 h-40 lg:h-full flex flex-col">
+          <div className="flex items-center gap-2 mb-2 text-muted-foreground justify-center lg:justify-start">
+            <Users className="w-3.5 h-3.5" />
+            <span className="text-xs font-medium uppercase tracking-wider">Devices ({connectedDevices.length})</span>
           </div>
-          
-          <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+
+          <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 custom-scrollbar">
             {connectedDevices.length === 0 ? (
-              <div className="text-sm text-muted-foreground/50 italic text-center py-4">
-                Waiting for devices...
+              <div className="text-xs text-muted-foreground/50 italic text-center py-4">
+                Waiting...
               </div>
             ) : (
               <>
                 {remoteDevices.map(device => (
-                  <div key={device.id} className="flex items-center justify-between p-2 rounded bg-secondary/50 text-sm">
+                  <div key={device.id} className="flex items-center justify-between p-1.5 rounded-md bg-secondary/40 text-xs border border-transparent hover:border-border transition-colors">
                     <div className="flex items-center gap-2">
-                      <Smartphone className="w-3 h-3 text-primary" />
-                      <span className="truncate max-w-[100px]">Remote</span>
+                      <Smartphone className="w-3 h-3 text-primary/70" />
+                      <span className="truncate max-w-[90px]">Remote</span>
                     </div>
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.5)]" />
                   </div>
                 ))}
                 {teleprompterDevices.map(device => (
-                  <div key={device.id} className="flex items-center justify-between p-2 rounded bg-secondary/50 text-sm">
+                  <div key={device.id} className="flex items-center justify-between p-1.5 rounded-md bg-secondary/40 text-xs border border-transparent hover:border-border transition-colors">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="w-3 h-3 text-blue-500" />
-                      <span className="truncate max-w-[100px]">Teleprompter</span>
+                      <BookOpen className="w-3 h-3 text-blue-500/70" />
+                      <span className="truncate max-w-[90px]">Teleprompter</span>
                     </div>
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.5)]" />
                   </div>
                 ))}
               </>

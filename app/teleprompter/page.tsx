@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { useRoom } from '@/contexts/RoomContext';
-import { 
-  BookOpen, 
-  Wifi, 
+import {
+  BookOpen,
+  Wifi,
   WifiOff,
   ArrowLeft,
   Play,
@@ -25,9 +25,9 @@ import { cn } from '@/lib/utils';
 
 export default function TeleprompterPage() {
   const router = useRouter();
-  const { 
-    roomId, 
-    isConnected, 
+  const {
+    roomId,
+    isConnected,
     role,
   } = useRoom();
 
@@ -37,7 +37,7 @@ export default function TeleprompterPage() {
   const [scrollSpeed, setScrollSpeed] = useState(30); // pixels per second
   const [isMirrored, setIsMirrored] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  
+
   const scriptRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,10 +69,10 @@ export default function TeleprompterPage() {
       }
 
       const pixelsToScroll = (scrollSpeed * deltaTime) / 1000;
-      
+
       preciseScroll += pixelsToScroll;
       scriptRef.current.scrollTop = preciseScroll;
-      
+
       // Sync if user manually scrolled significantly (allows manual override)
       if (Math.abs(scriptRef.current.scrollTop - preciseScroll) > 20) {
         preciseScroll = scriptRef.current.scrollTop;
@@ -115,10 +115,10 @@ export default function TeleprompterPage() {
         try {
           const pdfjs = await import('pdfjs-dist');
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-          
+
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-          
+
           let fullText = '';
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
@@ -128,7 +128,7 @@ export default function TeleprompterPage() {
               .join(' ');
             fullText += pageText + '\n\n';
           }
-          
+
           setScript(fullText);
           sessionStorage.setItem('teleprompter-script', fullText);
           toast.success('PDF script loaded');
@@ -145,15 +145,15 @@ export default function TeleprompterPage() {
 
   return (
     <div className="h-screen w-screen bg-black text-white overflow-hidden flex flex-col relative group">
-      
+
       {/* Script Display */}
-      <div 
+      <div
         ref={scriptRef}
         className={cn(
           "flex-1 overflow-y-auto px-8 py-[40vh] no-scrollbar outline-none",
           isMirrored && "scale-y-[-1]"
         )}
-        style={{ 
+        style={{
           fontSize: `${fontSize}px`,
           lineHeight: 1.5,
           textAlign: 'center',
@@ -182,13 +182,13 @@ export default function TeleprompterPage() {
         !showControls && "translate-y-full"
       )}>
         <div className="max-w-4xl mx-auto flex flex-col gap-4">
-          
+
           {/* Top Row: Playback & File */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => router.push('/')}
                 className="text-muted-foreground hover:text-white"
               >
@@ -221,9 +221,9 @@ export default function TeleprompterPage() {
               <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="w-4 h-4" />
               </Button>
-              <Button 
-                variant={isMirrored ? "default" : "outline"} 
-                size="icon" 
+              <Button
+                variant={isMirrored ? "default" : "outline"}
+                size="icon"
                 onClick={() => setIsMirrored(!isMirrored)}
               >
                 <FlipVertical className="w-4 h-4" />
@@ -234,13 +234,13 @@ export default function TeleprompterPage() {
           {/* Bottom Row: Settings */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             {/* Font Size */}
-            <div className="space-y-2">
+            <div className="space-y-2 [--primary:var(--pastel-blue)]">
               <div className="flex justify-between text-xs text-muted-foreground uppercase tracking-wider">
-                <span>Font Size</span>
-                <span>{fontSize}px</span>
+                <span className="text-pastel-blue font-bold">Font Size</span>
+                <span className="text-pastel-blue">{fontSize}px</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => setFontSize(Math.max(20, fontSize - 4))}>
+                <Button variant="ghost" size="icon" onClick={() => setFontSize(Math.max(20, fontSize - 4))} className="text-pastel-blue hover:text-pastel-blue hover:bg-pastel-blue/10">
                   <Minus className="w-4 h-4" />
                 </Button>
                 <Slider
@@ -251,20 +251,20 @@ export default function TeleprompterPage() {
                   onValueChange={(value) => setFontSize(value[0])}
                   className="flex-1"
                 />
-                <Button variant="ghost" size="icon" onClick={() => setFontSize(Math.min(100, fontSize + 4))}>
+                <Button variant="ghost" size="icon" onClick={() => setFontSize(Math.min(100, fontSize + 4))} className="text-pastel-blue hover:text-pastel-blue hover:bg-pastel-blue/10">
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
             {/* Scroll Speed */}
-            <div className="space-y-2">
+            <div className="space-y-2 [--primary:var(--pastel-green)]">
               <div className="flex justify-between text-xs text-muted-foreground uppercase tracking-wider">
-                <span>Scroll Speed</span>
-                <span>{scrollSpeed}px/s</span>
+                <span className="text-pastel-green font-bold">Scroll Speed</span>
+                <span className="text-pastel-green">{scrollSpeed}px/s</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => setScrollSpeed(Math.max(10, scrollSpeed - 5))}>
+                <Button variant="ghost" size="icon" onClick={() => setScrollSpeed(Math.max(10, scrollSpeed - 5))} className="text-pastel-green hover:text-pastel-green hover:bg-pastel-green/10">
                   <Minus className="w-4 h-4" />
                 </Button>
                 <Slider
@@ -275,7 +275,7 @@ export default function TeleprompterPage() {
                   onValueChange={(value) => setScrollSpeed(value[0])}
                   className="flex-1"
                 />
-                <Button variant="ghost" size="icon" onClick={() => setScrollSpeed(Math.min(100, scrollSpeed + 5))}>
+                <Button variant="ghost" size="icon" onClick={() => setScrollSpeed(Math.min(100, scrollSpeed + 5))} className="text-pastel-green hover:text-pastel-green hover:bg-pastel-green/10">
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>

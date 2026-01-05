@@ -44,7 +44,7 @@ function JoinRoomContent() {
     // Validate file type
     const isPDF = file.type === 'application/pdf';
     const isPPTX = file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-                   file.name.endsWith('.pptx');
+      file.name.endsWith('.pptx');
 
     if (!isPDF && !isPPTX) {
       toast.error('Please upload a PDF or PPTX file');
@@ -94,7 +94,7 @@ function JoinRoomContent() {
 
     try {
       joinRoom(roomCode, selectedRole);
-      
+
       // Simulate delay for better UX
       await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -119,17 +119,17 @@ function JoinRoomContent() {
   };
 
   const roles: { id: DeviceRole; label: string; icon: React.ElementType; description: string }[] = [
-    { 
-      id: 'remote', 
-      label: 'Remote Control', 
-      icon: Smartphone, 
-      description: 'Control slides from your phone' 
+    {
+      id: 'remote',
+      label: 'Remote Control',
+      icon: Smartphone,
+      description: 'Control slides from your phone'
     },
-    { 
-      id: 'teleprompter', 
-      label: 'Teleprompter', 
-      icon: BookOpen, 
-      description: 'Speaker notes and script' 
+    {
+      id: 'teleprompter',
+      label: 'Teleprompter',
+      icon: BookOpen,
+      description: 'Speaker notes and script'
     },
   ];
 
@@ -150,11 +150,11 @@ function JoinRoomContent() {
               </Link>
             </Button>
             <CardTitle className="text-2xl font-bold text-center flex flex-col items-center gap-2">
-              <div className="w-12 h-12 relative">
-                <Image 
-                  src="/deckhand-logo.png" 
-                  alt="DeckHand Logo" 
-                  fill 
+              <div className="w-16 h-16 relative">
+                <Image
+                  src="/Deckhand.svg"
+                  alt="DeckHand Logo"
+                  fill
                   className="object-contain"
                 />
               </div>
@@ -191,8 +191,8 @@ function JoinRoomContent() {
                   onClick={() => setSelectedRole(role.id)}
                   className={cn(
                     "flex items-center p-4 rounded-xl border-2 transition-all text-left hover:bg-accent/50",
-                    selectedRole === role.id 
-                      ? "border-primary bg-primary/5 ring-1 ring-primary/20" 
+                    selectedRole === role.id
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                       : "border-border bg-card hover:border-primary/50"
                   )}
                 >
@@ -243,8 +243,8 @@ function JoinRoomContent() {
             </div>
           )}
 
-          <Button 
-            className="w-full h-12 text-lg font-medium shadow-lg shadow-primary/20" 
+          <Button
+            className="w-full h-12 text-lg font-medium shadow-lg shadow-primary/20"
             onClick={handleJoinRoom}
             disabled={!roomCode || !selectedRole || isJoining || (selectedRole === 'stage' && !uploadedFile)}
           >

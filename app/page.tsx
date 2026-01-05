@@ -22,9 +22,9 @@ export default function Home() {
   const handleFileUpload = async (file: FileMetadata) => {
     setUploadedFile(file);
     reset();
-    
+
     const actualFile = file.file;
-    
+
     if (file.type.includes('pdf')) {
       await renderPDF(actualFile, { scale: 2.5 });
     } else if (file.type.includes('presentation') || file.name.endsWith('.pptx')) {
@@ -47,11 +47,11 @@ export default function Home() {
       {/* Navbar - Minimal */}
       <header className="container mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <div className="w-8 h-8 relative">
-            <NextImage 
-              src="/deckhand-logo.png" 
-              alt="DeckHand Logo" 
-              fill 
+          <div className="w-12 h-12 relative">
+            <NextImage
+              src="/Deckhand.svg"
+              alt="DeckHand Logo"
+              fill
               className="object-contain"
             />
           </div>
@@ -72,71 +72,181 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-24 py-12 lg:py-0">
+      <main className="flex-1 container mx-auto px-6 flex flex-col lg:flex-row items-start gap-12 lg:gap-24 py-12 lg:py-0 relative">
         {/* Left Content - Minimalist Hero */}
-        <div className="flex-1 space-y-8 text-center lg:text-left">
+        <div className="flex-1 space-y-8 text-center lg:text-left pt-8 lg:pt-0">
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            Remote-controlled <br/>
-            <span className="text-zinc-500">Presentation Deck.</span>
+            Remote-controlled <br />
+            <span className="text-nesternity-purple">Presentation Deck.</span>
           </h1>
           <p className="text-xl text-zinc-400 max-w-xl mx-auto lg:mx-0 leading-relaxed">
             Show a fullscreen presentation to your audience while you control it from another device. No apps required.
           </p>
-          
+
+          {/* Mobile CTA - Scrolls to Upload Section */}
+          <div className="lg:hidden pt-4">
+            <Button
+              size="lg"
+              className="w-full h-14 text-lg bg-white text-black hover:bg-zinc-200 transition-all font-bold rounded-full"
+              onClick={() => document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Start Presenting
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+
           {/* Feature List Creative */}
-          <div className="grid grid-cols-2 gap-4 pt-8 max-w-lg mx-auto lg:mx-0">
-            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
-              <div className="p-2 w-fit rounded-lg bg-blue-500/10 text-blue-400 group-hover:text-blue-300 group-hover:bg-blue-500/20 transition-colors">
-                <Smartphone className="w-5 h-5" />
+          {/* Feature List Redesigned - Alternating Sections */}
+          <div className="space-y-24 py-24">
+            {/* Feature 1: Remote Control (Blue/Purple theme) */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+              <div className="flex-1 space-y-6 order-2 lg:order-1 text-left">
+                <div className="w-fit px-4 py-1.5 rounded-full bg-pastel-blue/10 border border-pastel-blue/20 text-pastel-blue font-semibold text-sm">
+                  Remote Control
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
+                  Control slides from <br />
+                  <span className="text-pastel-blue">any device.</span>
+                </h3>
+                <p className="text-lg text-zinc-400 leading-relaxed">
+                  No need to stand behind your laptop. Use your phone as a clicker and see your speaker notes right in your hand.
+                </p>
+                <ul className="space-y-3 pt-2">
+                  <li className="flex items-center gap-3 text-zinc-300">
+                    <CheckCircle2 className="w-5 h-5 text-pastel-blue" />
+                    <span>Works on any device</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-zinc-300">
+                    <CheckCircle2 className="w-5 h-5 text-pastel-blue" />
+                    <span>Next, Previous, and Jump to slide and more controls</span>
+                  </li>
+                </ul>
               </div>
-              <div>
-                <h3 className="font-semibold text-zinc-200 text-sm">Remote Control</h3>
-                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Control from any phone</p>
+              <div className="flex-1 w-full order-1 lg:order-2">
+                <div className="aspect-square relative rounded-3xl overflow-hidden bg-zinc-900/50 border border-pastel-blue/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-pastel-blue/5 to-transparent opacity-50" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative w-48 h-48 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                      <Smartphone className="w-20 h-20 text-pastel-blue" />
+                      <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-xl animate-bounce duration-[3000ms]">
+                        <ArrowRight className="w-8 h-8 text-zinc-500" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
-              <div className="p-2 w-fit rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:text-emerald-300 group-hover:bg-emerald-500/20 transition-colors">
-                <ShieldCheck className="w-5 h-5" />
+            {/* Feature 2: Privacy First (Green theme) */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+              <div className="flex-1 w-full order-1">
+                <div className="aspect-square relative rounded-3xl overflow-hidden bg-zinc-900/50 border border-pastel-green/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-bl from-pastel-green/5 to-transparent opacity-50" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative w-56 h-40 rounded-xl bg-zinc-950 border border-zinc-800 shadow-2xl flex flex-col items-center justify-center gap-4 group-hover:-translate-y-2 transition-transform duration-500">
+                      <ShieldCheck className="w-16 h-16 text-pastel-green" />
+                      <div className="px-4 py-1 rounded-full bg-pastel-green/10 text-pastel-green text-xs font-mono">
+                        SECURED
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-zinc-200 text-sm">Privacy First</h3>
-                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Files stay on device</p>
+              <div className="flex-1 space-y-6 order-2 text-left">
+                <div className="w-fit px-4 py-1.5 rounded-full bg-pastel-green/10 border border-pastel-green/20 text-pastel-green font-semibold text-sm">
+                  Privacy First
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
+                  Your files stay <br />
+                  <span className="text-pastel-green">on your device.</span>
+                </h3>
+                <p className="text-lg text-zinc-400 leading-relaxed">
+                  We verify using the room code, but your presentation files are never stored on our servers. Peer-to-peer aesthetic.
+                </p>
+                <div className="flex items-center gap-4 pt-2">
+                  <div className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-400">
+                    No Cloud Storage
+                  </div>
+                  <div className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-400">
+                    Local Parsing
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
-              <div className="p-2 w-fit rounded-lg bg-amber-500/10 text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-500/20 transition-colors">
-                <ScrollText className="w-5 h-5" />
+            {/* Feature 3: Teleprompter (Orange theme) */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+              <div className="flex-1 space-y-6 order-2 lg:order-1 text-left">
+                <div className="w-fit px-4 py-1.5 rounded-full bg-pastel-orange/10 border border-pastel-orange/20 text-pastel-orange font-semibold text-sm">
+                  Teleprompter
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
+                  Never forget <br />
+                  <span className="text-pastel-orange">your lines.</span>
+                </h3>
+                <p className="text-lg text-zinc-400 leading-relaxed">
+                  Speaker notes are automatically extracted and displayed on your remote device, keeping you in sync with your audience.
+                </p>
               </div>
-              <div>
-                <h3 className="font-semibold text-zinc-200 text-sm">Teleprompter</h3>
-                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Built-in speech aid</p>
+              <div className="flex-1 w-full order-1 lg:order-2">
+                <div className="aspect-square relative rounded-3xl overflow-hidden bg-zinc-900/50 border border-pastel-orange/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-pastel-orange/5 to-transparent opacity-50" />
+                  <div className="absolute inset-0 flex items-center justify-center p-12">
+                    <div className="w-full h-full bg-zinc-950 rounded-xl border border-zinc-800 p-6 shadow-2xl rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                      <div className="space-y-3 opacity-50">
+                        <div className="h-2 w-3/4 bg-zinc-800 rounded-full" />
+                        <div className="h-2 w-full bg-zinc-800 rounded-full" />
+                        <div className="h-2 w-5/6 bg-zinc-800 rounded-full" />
+                      </div>
+                      <div className="mt-6 space-y-2">
+                        <div className="h-4 w-full bg-pastel-orange/20 rounded-md" />
+                        <div className="h-4 w-2/3 bg-pastel-orange/20 rounded-md" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
-              <div className="p-2 w-fit rounded-lg bg-violet-500/10 text-violet-400 group-hover:text-violet-300 group-hover:bg-violet-500/20 transition-colors">
-                <Zap className="w-5 h-5" />
+            {/* Feature 4: Real-time Sync (Purple/Yellow theme) */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+              <div className="flex-1 w-full order-1">
+                <div className="aspect-square relative rounded-3xl overflow-hidden bg-zinc-900/50 border border-pastel-purple/20 group">
+                  <div className="absolute inset-0 bg-gradient-to-t from-pastel-purple/5 to-transparent opacity-50" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative">
+                      <div className="absolute -inset-4 bg-pastel-purple/20 blur-xl rounded-full" />
+                      <Zap className="w-32 h-32 text-pastel-purple relative z-10 drop-shadow-[0_0_15px_rgba(196,165,255,0.5)]" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-zinc-200 text-sm">Real-time Sync</h3>
-                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Zero latency control</p>
+              <div className="flex-1 space-y-6 order-2 text-left">
+                <div className="w-fit px-4 py-1.5 rounded-full bg-pastel-purple/10 border border-pastel-purple/20 text-pastel-purple font-semibold text-sm">
+                  Real-time Sync
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
+                  Instant <br />
+                  <span className="text-pastel-purple">Responsiveness.</span>
+                </h3>
+                <p className="text-lg text-zinc-400 leading-relaxed">
+                  Zero latency control ensures your slides change the instant you tap your phone. No awkward pauses.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Action Card - Clean & Solid */}
-        <div className="flex-1 w-full max-w-md lg:max-w-lg">
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+        {/* Right Action Card - Clean & Solid & Sticky */}
+        <div id="upload-section" className="flex-1 w-full max-w-md lg:max-w-lg sticky top-24 self-start">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
             {!uploadedFile ? (
               <div className="space-y-6">
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold">Start Presenting</h2>
                   <p className="text-zinc-400">Upload your PDF or PPTX to create a room.</p>
                 </div>
-                
+
                 <div className="bg-zinc-950/50 p-1 rounded-xl border border-zinc-800 border-dashed hover:border-zinc-700 transition-colors">
                   <FileUpload onFileUpload={handleFileUpload} />
                 </div>
@@ -197,10 +307,10 @@ export default function Home() {
                         <p className="font-medium">{slides.length} Slides Ready</p>
                       </div>
                     </div>
-                    
-                    <Button 
-                      size="lg" 
-                      className="w-full h-14 text-lg bg-white text-black hover:bg-zinc-200 transition-all font-bold" 
+
+                    <Button
+                      size="lg"
+                      className="w-full h-14 text-lg bg-white text-black hover:bg-zinc-200 transition-all font-bold"
                       onClick={handleStartPresentation}
                     >
                       Launch Presentation
