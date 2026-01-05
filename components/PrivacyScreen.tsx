@@ -34,7 +34,7 @@ export const PrivacyScreen: React.FC<PrivacyScreenProps> = ({ onExit }) => {
         {/* Logo */}
         <div className="relative w-48 h-48 sm:w-64 sm:h-64">
           <Image
-            src="/deckhand-logo.png"
+            src="/Deckhand.svg"
             alt="DeckHand Logo"
             fill
             className="object-contain"
