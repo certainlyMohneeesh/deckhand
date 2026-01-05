@@ -226,35 +226,31 @@ export default function RemotePage() {
             </div>
           </div>
           
-          <Card className="flex-1 bg-card/30 border-border/50 flex items-center justify-center relative overflow-hidden">
-            <div className="text-center space-y-4 p-4 w-full h-full flex flex-col items-center justify-center">
+          <Card className="flex-1 bg-card/30 border-border/50 flex flex-col relative overflow-hidden">
+            <div className="flex-1 p-6 w-full overflow-y-auto text-left">
               {currentNote ? (
-                <>
-                  <div className="text-8xl font-bold text-foreground/20 font-mono absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    {currentSlide}
-                  </div>
-                  <div className="relative z-10 max-h-full overflow-y-auto w-full text-left">
-                    <p className="text-muted-foreground text-sm whitespace-pre-wrap">
-                      {currentNote}
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-8xl font-bold text-foreground/20 font-mono">
-                    {currentSlide}
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    No notes for this slide
+                <div className="prose prose-invert max-w-none">
+                  <p className="text-base leading-relaxed text-foreground/90 whitespace-pre-wrap font-sans">
+                    {currentNote}
                   </p>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-4">
+                  <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
+                    <FileText className="w-8 h-8 opacity-40" />
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="font-medium text-foreground">No notes available</p>
+                    <p className="text-xs text-muted-foreground">Slide {currentSlide}</p>
+                  </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => fileInputRef.current?.click()}
                     className="mt-2"
                   >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Upload Notes (PPTX/PDF/TXT)
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Notes
                   </Button>
                 </div>
               )}
