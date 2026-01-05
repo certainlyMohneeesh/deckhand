@@ -188,11 +188,11 @@ export default function RemotePage() {
           <span className="font-mono text-sm font-medium text-muted-foreground">{roomId}</span>
 
           {/* DeckHand Branding */}
-          <div className="hidden sm:flex items-center gap-1.5 ml-2 pl-2 border-l border-border">
+          <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-border">
             <div className="w-4 h-4 relative">
               <Image src="/Deckhand.svg" alt="DeckHand" fill className="object-contain" />
             </div>
-            <span className="text-xs font-semibold text-muted-foreground">DeckHand</span>
+            <span className="text-xs font-semibold text-muted-foreground hidden sm:inline">DeckHand</span>
           </div>
         </div>
 
