@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { useRoom } from '@/contexts/RoomContext';
+import Image from 'next/image';
 import {
   BookOpen,
   Wifi,
@@ -29,6 +30,8 @@ export default function TeleprompterPage() {
     roomId,
     isConnected,
     role,
+    currentSlide,
+    totalSlides,
   } = useRoom();
 
   const [script, setScript] = useState<string>('');
@@ -145,6 +148,24 @@ export default function TeleprompterPage() {
 
   return (
     <div className="h-screen w-screen bg-black text-white overflow-hidden flex flex-col relative group">
+
+      {/* Top Bar - Branding & Slide Counter */}
+      <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 pointer-events-none">
+        {/* Left: DeckHand Branding */}
+        <div className="flex items-center gap-2 pointer-events-auto opacity-60 hover:opacity-100 transition-opacity">
+          <div className="w-6 h-6 relative">
+            <Image src="/Deckhand.svg" alt="DeckHand" fill className="object-contain" />
+          </div>
+          <span className="text-sm font-semibold text-white/80">DeckHand</span>
+        </div>
+
+        {/* Right: Slide Counter */}
+        <div className="pointer-events-auto bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+          <span className="text-sm font-mono font-medium text-white/80">
+            {currentSlide} / {totalSlides || '–'}
+          </span>
+        </div>
+      </div>
 
       {/* Script Display */}
       <div

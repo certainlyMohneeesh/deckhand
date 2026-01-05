@@ -8,10 +8,10 @@ import { useRoom } from '@/contexts/RoomContext';
 import { useSlides } from '@/contexts/SlideContext';
 import { usePPTXParser } from '@/hooks/usePPTXParser';
 import { usePDFParser } from '@/hooks/usePDFParser';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Wifi, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Wifi,
   WifiOff,
   Maximize,
   Minimize,
@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export default function RemotePage() {
   const router = useRouter();
@@ -35,13 +36,13 @@ export default function RemotePage() {
   const { parsePPTX, isLoading: isParsingPPTX } = usePPTXParser();
   const { parsePDF, isLoading: isParsingPDF } = usePDFParser();
   const isParsing = isParsingPPTX || isParsingPDF;
-  
-  const { 
-    roomId, 
-    currentSlide, 
-    totalSlides, 
-    isConnected, 
-    nextSlide, 
+
+  const {
+    roomId,
+    currentSlide,
+    totalSlides,
+    isConnected,
+    nextSlide,
     prevSlide,
     goToSlide,
     role,
@@ -79,7 +80,7 @@ export default function RemotePage() {
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
-    
+
     if (isLeftSwipe) {
       if (currentSlide < totalSlides) nextSlide();
     }
@@ -91,7 +92,7 @@ export default function RemotePage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     let notes: string[] = [];
 
     if (file.name.endsWith('.pptx')) {
@@ -147,7 +148,7 @@ export default function RemotePage() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-background flex flex-col safe-area-inset-bottom relative"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -182,22 +183,33 @@ export default function RemotePage() {
 
       {/* Top Bar */}
       <header className="h-14 border-b border-border bg-card/50 backdrop-blur flex items-center justify-between px-4 sticky top-0 z-50">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className={cn("w-2 h-2 rounded-full animate-pulse", isConnected ? "bg-green-500" : "bg-red-500")} />
           <span className="font-mono text-sm font-medium text-muted-foreground">{roomId}</span>
+
+          {/* DeckHand Branding */}
+          <div className="hidden sm:flex items-center gap-1.5 ml-2 pl-2 border-l border-border">
+            <div className="w-4 h-4 relative">
+              <Image src="/Deckhand.svg" alt="DeckHand" fill className="object-contain" />
+            </div>
+            <span className="text-xs font-semibold text-muted-foreground">DeckHand</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Clock className="w-4 h-4 text-muted-foreground" />
-          <span>{currentTime}</span>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span>{currentTime}</span>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push('/')}>
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push('/')}>
-          <LogOut className="w-4 h-4" />
-        </Button>
       </header>
 
       {/* Main Control Area */}
       <main className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
-        
+
         {/* Slide Info Card (No Preview) */}
         <div className="flex-1 min-h-0 flex flex-col gap-2">
           <div className="flex items-center justify-between px-1">
@@ -210,9 +222,9 @@ export default function RemotePage() {
                 accept=".pptx,.pdf,.txt"
                 onChange={handleFileUpload}
               />
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-6 px-2 text-xs gap-1"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isParsing}
@@ -225,7 +237,7 @@ export default function RemotePage() {
               </span>
             </div>
           </div>
-          
+
           <Card className="flex-1 bg-card/30 border-border/50 flex flex-col relative overflow-hidden">
             <div className="flex-1 p-6 w-full overflow-y-auto text-left">
               {currentNote ? (
@@ -243,9 +255,9 @@ export default function RemotePage() {
                     <p className="font-medium text-foreground">No notes available</p>
                     <p className="text-xs text-muted-foreground">Slide {currentSlide}</p>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     className="mt-2"
                   >
@@ -260,8 +272,8 @@ export default function RemotePage() {
 
         {/* Primary Controls - HUGE Buttons for easy touch */}
         <div className="grid grid-cols-2 gap-4 h-48 shrink-0">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-full flex flex-col gap-2 text-lg border-border/50 bg-card/30 hover:bg-card/50 active:scale-95 transition-all"
             onClick={prevSlide}
             disabled={currentSlide <= 1}
@@ -269,8 +281,8 @@ export default function RemotePage() {
             <ChevronLeft className="w-8 h-8" />
             <span>Prev</span>
           </Button>
-          
-          <Button 
+
+          <Button
             className="h-full flex flex-col gap-2 text-lg bg-primary text-primary-foreground shadow-lg shadow-primary/20 active:scale-95 transition-all"
             onClick={nextSlide}
             disabled={currentSlide >= totalSlides}
@@ -282,8 +294,8 @@ export default function RemotePage() {
 
         {/* Secondary Controls */}
         <div className="grid grid-cols-4 gap-2 shrink-0">
-          <Button 
-            variant={roomIsPrivacyMode ? "destructive" : "secondary"} 
+          <Button
+            variant={roomIsPrivacyMode ? "destructive" : "secondary"}
             size="lg"
             className="h-14 flex flex-col gap-1 text-[10px]"
             onClick={() => togglePrivacy(!roomIsPrivacyMode)}
@@ -292,8 +304,8 @@ export default function RemotePage() {
             <span>Blackout</span>
           </Button>
 
-          <Button 
-            variant={showLocalGrid ? "default" : "secondary"} 
+          <Button
+            variant={showLocalGrid ? "default" : "secondary"}
             size="lg"
             className="h-14 flex flex-col gap-1 text-[10px]"
             onClick={() => setShowLocalGrid(true)}
@@ -302,8 +314,8 @@ export default function RemotePage() {
             <span>Grid</span>
           </Button>
 
-          <Button 
-            variant={roomIsFullscreen ? "default" : "secondary"} 
+          <Button
+            variant={roomIsFullscreen ? "default" : "secondary"}
             size="lg"
             className="h-14 flex flex-col gap-1 text-[10px]"
             onClick={() => toggleFullscreen(!roomIsFullscreen)}
@@ -312,8 +324,8 @@ export default function RemotePage() {
             <span>Full</span>
           </Button>
 
-          <Button 
-            variant={roomIsPlaying ? "default" : "secondary"} 
+          <Button
+            variant={roomIsPlaying ? "default" : "secondary"}
             size="lg"
             className="h-14 flex flex-col gap-1 text-[10px]"
             onClick={() => togglePlay(!roomIsPlaying)}
