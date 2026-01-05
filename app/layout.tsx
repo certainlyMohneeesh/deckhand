@@ -32,7 +32,10 @@ export default function RootLayout({
       >
         <SlideProvider>
           <RoomProvider>
-            <Toaster position="top-right" />
+            <Toaster position="top-center" toastOptions={{
+              className: 'bg-background border border-border text-foreground',
+              style: { borderRadius: 'var(--radius)' }
+            }} />
             {children}
           </RoomProvider>
         </SlideProvider>
