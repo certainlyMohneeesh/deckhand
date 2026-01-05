@@ -4,7 +4,7 @@ import { FileUpload } from '@/components/FileUpload';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
-import { Monitor, ArrowRight, Presentation, Smartphone, Radio, CheckCircle2 } from 'lucide-react';
+import { Monitor, ArrowRight, Presentation, Smartphone, Radio, CheckCircle2, ShieldCheck, ScrollText, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FileMetadata } from '@/types/file';
 import { useSlideRenderer } from '@/hooks/useSlideRenderer';
@@ -83,19 +83,46 @@ export default function Home() {
             Show a fullscreen presentation to your audience while you control it from another device. No apps required.
           </p>
           
-          {/* Feature List Minimal */}
-          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 text-sm font-medium text-zinc-300 pt-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <span>Real-time Sync</span>
+          {/* Feature List Creative */}
+          <div className="grid grid-cols-2 gap-4 pt-8 max-w-lg mx-auto lg:mx-0">
+            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
+              <div className="p-2 w-fit rounded-lg bg-blue-500/10 text-blue-400 group-hover:text-blue-300 group-hover:bg-blue-500/20 transition-colors">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-zinc-200 text-sm">Remote Control</h3>
+                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Control from any phone</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <span>Speaker Notes</span>
+
+            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
+              <div className="p-2 w-fit rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:text-emerald-300 group-hover:bg-emerald-500/20 transition-colors">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-zinc-200 text-sm">Privacy First</h3>
+                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Files stay on device</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <span>Zero Latency</span>
+
+            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
+              <div className="p-2 w-fit rounded-lg bg-amber-500/10 text-amber-400 group-hover:text-amber-300 group-hover:bg-amber-500/20 transition-colors">
+                <ScrollText className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-zinc-200 text-sm">Teleprompter</h3>
+                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Built-in speech aid</p>
+              </div>
+            </div>
+
+            <div className="group flex flex-col gap-2 p-4 rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/80 hover:border-zinc-700 transition-all duration-300">
+              <div className="p-2 w-fit rounded-lg bg-violet-500/10 text-violet-400 group-hover:text-violet-300 group-hover:bg-violet-500/20 transition-colors">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-zinc-200 text-sm">Real-time Sync</h3>
+                <p className="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Zero latency control</p>
+              </div>
             </div>
           </div>
         </div>
