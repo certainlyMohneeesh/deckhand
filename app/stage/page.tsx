@@ -171,14 +171,9 @@ export default function StagePage() {
           externalFullscreen={isFullscreen}
           externalAutoPlay={isPlaying}
           externalShowOverview={showGrid}
+          externalPrivacyMode={isPrivacyMode}
+          onPrivacyExit={() => togglePrivacy(false)}
         />
-
-        {/* Privacy Overlay */}
-        {isPrivacyMode && (
-          <PrivacyScreen
-            onExit={() => togglePrivacy(false)}
-          />
-        )}
       </div>
 
       {/* Bottom Info Bar - Responsive */}
