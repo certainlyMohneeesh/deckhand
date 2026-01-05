@@ -1,25 +1,28 @@
 'use client';
 
 import { PresentationPlayer } from '@/components/PresentationPlayer';
-import { PrivacyScreen } from '@/components/PrivacyScreen';
 import { useSlideRenderer } from '@/hooks/useSlideRenderer';
 import { useRoom } from '@/contexts/RoomContext';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Card } from '@/components/ui/card';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import {
   Loader2,
   Maximize2,
-  WifiOff,
-  QrCode,
   Copy,
   Check,
   Users,
   Smartphone,
-  Monitor,
   BookOpen,
-  Wifi
+  ChevronUp,
+  X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -47,6 +50,7 @@ export default function StagePage() {
 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true); // Open by default
 
   // Generate QR code
   useEffect(() => {
@@ -161,8 +165,8 @@ export default function StagePage() {
   const teleprompterDevices = connectedDevices.filter(d => d.role === 'teleprompter');
 
   return (
-    <div className="h-screen w-screen bg-black flex flex-col overflow-hidden">
-      {/* Main Player Area - Takes available space */}
+    <div className="h-screen w-screen bg-black flex flex-col overflow-hidden relative">
+      {/* Main Player Area - Takes full available space */}
       <div className="flex-1 relative min-h-0">
         <PresentationPlayer
           slides={slides}
@@ -176,106 +180,141 @@ export default function StagePage() {
         />
       </div>
 
-      {/* Bottom Info Bar - Responsive */}
-      <div className="h-auto lg:h-48 bg-background border-t border-border p-4 lg:p-6 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6 lg:gap-8 shrink-0 z-50 overflow-y-auto">
+      {/* Floating Toggle Button - Shows when drawer is closed */}
+      {!drawerOpen && (
+        <Button
+          variant="secondary"
+          size="icon"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full w-12 h-12 shadow-lg bg-background/80 backdrop-blur-sm border border-border hover:bg-background"
+          onClick={() => setDrawerOpen(true)}
+        >
+          <ChevronUp className="w-5 h-5" />
+        </Button>
+      )}
 
-        {/* Left: Room Info & QR */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-6 h-full w-full lg:w-auto">
-          {qrCodeUrl && (
-            <div className="h-32 w-32 lg:h-full lg:w-auto aspect-square bg-white p-2 rounded-lg shadow-sm shrink-0">
-              <Image
-                src={qrCodeUrl}
-                alt="Room QR Code"
-                width={150}
-                height={150}
-                className="w-full h-full object-contain"
-              />
-            </div>
-          )}
+      {/* Bottom Drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="bottom">
+        <DrawerContent className="max-h-[60vh] bg-background/95 backdrop-blur-xl">
+          <DrawerTitle className="sr-only">Presentation Controls</DrawerTitle>
+          <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto w-full">
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8"
+              onClick={() => setDrawerOpen(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
 
-          <div className="flex flex-col justify-between py-1 w-full sm:w-auto gap-4 lg:gap-0">
-            <div className="text-center sm:text-left">
-              <h3 className="text-sm font-medium text-muted-foreground mb-1">Room Code</h3>
-              <div className="flex items-center justify-center sm:justify-start gap-3">
-                <span className="text-4xl font-mono font-bold tracking-wider text-primary">
-                  {roomId}
-                </span>
-                <Button variant="outline" size="icon" onClick={handleCopyRoomCode}>
-                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                </Button>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+              {/* Left: QR Code & Room Info */}
+              <div className="flex flex-col sm:flex-row md:flex-col items-center gap-4">
+                {qrCodeUrl && (
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white p-1.5 rounded-lg shadow-sm shrink-0">
+                    <Image
+                      src={qrCodeUrl}
+                      alt="Room QR Code"
+                      width={120}
+                      height={120}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
+
+                <div className="text-center sm:text-left md:text-center space-y-2 w-full">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Room Code</p>
+                  <div className="flex items-center justify-center sm:justify-start md:justify-center gap-2">
+                    <span className="text-2xl sm:text-3xl font-mono font-bold tracking-wider text-primary">
+                      {roomId}
+                    </span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCopyRoomCode}>
+                      {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  <Button variant="secondary" size="sm" className="w-full max-w-[180px] h-8 text-xs" onClick={handleCopyUrl}>
+                    Copy Join URL
+                  </Button>
+                </div>
+              </div>
+
+              {/* Center: Slide Controls & Status */}
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className={cn("w-2 h-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500 animate-pulse")} />
+                  <span className={cn("text-xs", isConnected ? "text-muted-foreground" : "text-red-500")}>
+                    {isConnected ? "Connected" : "Disconnected"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10"
+                    onClick={() => handleSlideChange(currentSlide - 2)}
+                    disabled={currentSlide <= 1}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M8.84182 3.13514C9.04327 3.32401 9.05348 3.64042 8.86462 3.84188L5.43521 7.49991L8.86462 11.1579C9.05348 11.3594 9.04327 11.6758 8.84182 11.8647C8.64036 12.0535 8.32394 12.0433 8.13508 11.8419L4.38508 7.84188C4.20477 7.64955 4.20477 7.35027 4.38508 7.15794L8.13508 3.15794C8.32394 2.95648 8.64036 2.94628 8.84182 3.13514Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+                  </Button>
+                  <span className="text-xl font-mono font-medium min-w-[80px] text-center">
+                    {currentSlide} / {slides.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10"
+                    onClick={() => handleSlideChange(currentSlide)}
+                    disabled={currentSlide >= slides.length}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M6.1584 3.13523C6.35985 2.94621 6.67627 2.95603 6.86529 3.15749L10.6153 7.15749C10.7956 7.34982 10.7956 7.6491 10.6153 7.84143L6.86529 11.8414C6.67627 12.0429 6.35985 12.0527 6.1584 11.8637C5.95694 11.6746 5.94712 11.3582 6.13614 11.1568L9.56554 7.49946L6.13614 3.84211C5.94712 3.64066 5.94712 3.32423 6.1584 3.13523Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggleFullscreenHandler}>
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right: Connected Devices */}
+              <div className="flex flex-col items-center md:items-start">
+                <div className="flex items-center gap-2 mb-3 text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span className="text-xs font-medium uppercase tracking-wider">Devices ({connectedDevices.length})</span>
+                </div>
+
+                <div className="w-full max-w-[200px] space-y-1.5 max-h-24 overflow-y-auto">
+                  {connectedDevices.length === 0 ? (
+                    <p className="text-xs text-muted-foreground/50 italic text-center">Waiting...</p>
+                  ) : (
+                    <>
+                      {remoteDevices.map(device => (
+                        <div key={device.id} className="flex items-center justify-between p-1.5 rounded-md bg-secondary/40 text-xs">
+                          <div className="flex items-center gap-2">
+                            <Smartphone className="w-3 h-3 text-primary/70" />
+                            <span>Remote</span>
+                          </div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                        </div>
+                      ))}
+                      {teleprompterDevices.map(device => (
+                        <div key={device.id} className="flex items-center justify-between p-1.5 rounded-md bg-secondary/40 text-xs">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="w-3 h-3 text-blue-500/70" />
+                            <span>Teleprompter</span>
+                          </div>
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-
-            <Button variant="secondary" size="sm" className="w-full sm:w-auto px-6 h-8 text-xs font-medium" onClick={handleCopyUrl}>
-              Copy Join URL
-            </Button>
           </div>
-        </div>
-
-        {/* Center: Slide Controls & Status */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <div className={cn("w-2 h-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500 animate-pulse")} />
-            <span className={isConnected ? "text-muted-foreground" : "text-red-500"}>
-              {isConnected ? "Connected to Server" : "Disconnected"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => handleSlideChange(currentSlide - 2)} disabled={currentSlide <= 1}>
-              <span className="sr-only">Previous</span>
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M8.84182 3.13514C9.04327 3.32401 9.05348 3.64042 8.86462 3.84188L5.43521 7.49991L8.86462 11.1579C9.05348 11.3594 9.04327 11.6758 8.84182 11.8647C8.64036 12.0535 8.32394 12.0433 8.13508 11.8419L4.38508 7.84188C4.20477 7.64955 4.20477 7.35027 4.38508 7.15794L8.13508 3.15794C8.32394 2.95648 8.64036 2.94628 8.84182 3.13514Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
-            </Button>
-            <span className="text-lg font-mono font-medium w-24 text-center">
-              {currentSlide} / {slides.length}
-            </span>
-            <Button variant="outline" size="icon" onClick={() => handleSlideChange(currentSlide)} disabled={currentSlide >= slides.length}>
-              <span className="sr-only">Next</span>
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M6.1584 3.13523C6.35985 2.94621 6.67627 2.95603 6.86529 3.15749L10.6153 7.15749C10.7956 7.34982 10.7956 7.6491 10.6153 7.84143L6.86529 11.8414C6.67627 12.0429 6.35985 12.0527 6.1584 11.8637C5.95694 11.6746 5.94712 11.3582 6.1584 11.1568L9.56554 7.49946L6.13614 3.84211C5.94712 3.64066 5.94712 3.32423 6.1584 3.13523Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
-            </Button>
-            <Button variant="ghost" size="icon" onClick={toggleFullscreenHandler}>
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Right: Connected Devices */}
-        <div className="w-full lg:w-60 h-40 lg:h-full flex flex-col">
-          <div className="flex items-center gap-2 mb-2 text-muted-foreground justify-center lg:justify-start">
-            <Users className="w-3.5 h-3.5" />
-            <span className="text-xs font-medium uppercase tracking-wider">Devices ({connectedDevices.length})</span>
-          </div>
-
-          <div className="flex-1 overflow-y-auto pr-1 space-y-1.5 custom-scrollbar">
-            {connectedDevices.length === 0 ? (
-              <div className="text-xs text-muted-foreground/50 italic text-center py-4">
-                Waiting...
-              </div>
-            ) : (
-              <>
-                {remoteDevices.map(device => (
-                  <div key={device.id} className="flex items-center justify-between p-1.5 rounded-md bg-secondary/40 text-xs border border-transparent hover:border-border transition-colors">
-                    <div className="flex items-center gap-2">
-                      <Smartphone className="w-3 h-3 text-primary/70" />
-                      <span className="truncate max-w-[90px]">Remote</span>
-                    </div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.5)]" />
-                  </div>
-                ))}
-                {teleprompterDevices.map(device => (
-                  <div key={device.id} className="flex items-center justify-between p-1.5 rounded-md bg-secondary/40 text-xs border border-transparent hover:border-border transition-colors">
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-3 h-3 text-blue-500/70" />
-                      <span className="truncate max-w-[90px]">Teleprompter</span>
-                    </div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.5)]" />
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
