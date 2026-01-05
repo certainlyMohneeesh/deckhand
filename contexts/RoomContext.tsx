@@ -11,19 +11,19 @@ interface RoomContextValue extends RoomState {
   createRoom: (role: DeviceRole) => string;
   joinRoom: (roomId: string, role: DeviceRole) => void;
   leaveRoom: () => void;
-  
+
   // Slide control
   goToSlide: (slideIndex: number) => void;
   nextSlide: () => void;
   prevSlide: () => void;
   setTotalSlides: (total: number) => void;
-  
+
   // Device management
   updateDeviceName: (name: string) => void;
-  
+
   // Connection status
   isReconnecting: boolean;
-  
+
   // Presentation controls
   toggleFullscreen: (isFullscreen: boolean) => void;
   togglePlay: (isPlaying: boolean) => void;
@@ -97,8 +97,8 @@ export function RoomProvider({ children }: RoomProviderProps) {
         ...prev,
         currentSlide: data.slideIndex,
         // Update totalSlides if provided by server (from stage)
-        totalSlides: data.totalSlides !== undefined && data.totalSlides > 0 
-          ? data.totalSlides 
+        totalSlides: data.totalSlides !== undefined && data.totalSlides > 0
+          ? data.totalSlides
           : prev.totalSlides,
       }));
     },
@@ -107,8 +107,8 @@ export function RoomProvider({ children }: RoomProviderProps) {
         ...prev,
         connectedDevices: data.devices,
         // Sync totalSlides if provided
-        totalSlides: data.totalSlides !== undefined && data.totalSlides > 0 
-          ? data.totalSlides 
+        totalSlides: data.totalSlides !== undefined && data.totalSlides > 0
+          ? data.totalSlides
           : prev.totalSlides,
       }));
     },
@@ -135,7 +135,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
   // Create a new room (host)
   const createRoom = useCallback((role: DeviceRole): string => {
     const newRoomId = createRoomCode();
-    
+
     setRoomState(prev => ({
       ...prev,
       roomId: newRoomId,
@@ -183,7 +183,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
   const leaveRoom = useCallback(() => {
     if (roomState.roomId) {
       socketLeaveRoom({ roomId: roomState.roomId });
-      
+
       setRoomState({
         roomId: null,
         isHost: false,
@@ -198,7 +198,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
         showGrid: false,
         isPrivacyMode: false,
       });
-      
+
       toast.info('Left room');
     }
   }, [roomState.roomId, roomState.deviceName, socketLeaveRoom, isConnected]);
@@ -209,7 +209,7 @@ export function RoomProvider({ children }: RoomProviderProps) {
 
     // Clamp to valid range
     const clampedIndex = Math.max(1, Math.min(slideIndex, roomState.totalSlides || slideIndex));
-    
+
     setRoomState(prev => ({
       ...prev,
       currentSlide: clampedIndex,
@@ -236,13 +236,23 @@ export function RoomProvider({ children }: RoomProviderProps) {
     }
   }, [roomState.currentSlide, goToSlide]);
 
-  // Set total slides
+  // Set total slides and broadcast to room
   const setTotalSlides = useCallback((total: number) => {
     setRoomState(prev => ({
       ...prev,
       totalSlides: total,
     }));
-  }, []);
+
+    // Broadcast totalSlides to all connected devices immediately
+    // This ensures remotes get the correct totalSlides when they join
+    if (roomState.roomId && total > 0) {
+      changeSlide({
+        roomId: roomState.roomId,
+        slideIndex: roomState.currentSlide,
+        totalSlides: total,
+      });
+    }
+  }, [roomState.roomId, roomState.currentSlide, changeSlide]);
 
   // Update device name
   const updateDeviceName = useCallback((name: string) => {
