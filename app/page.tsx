@@ -47,7 +47,7 @@ export default function Home() {
       {/* Navbar - Minimal */}
       <header className="container mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <div className="w-12 h-12 relative">
+          <div className="w-8 h-8 relative">
             <NextImage
               src="/Deckhand.svg"
               alt="DeckHand Logo"

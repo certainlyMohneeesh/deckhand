@@ -150,7 +150,7 @@ function JoinRoomContent() {
               </Link>
             </Button>
             <CardTitle className="text-2xl font-bold text-center flex flex-col items-center gap-2">
-              <div className="w-16 h-16 relative">
+              <div className="w-10 h-10 relative">
                 <Image
                   src="/Deckhand.svg"
                   alt="DeckHand Logo"
