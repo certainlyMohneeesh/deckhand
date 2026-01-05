@@ -4,7 +4,7 @@ import { FileUpload } from '@/components/FileUpload';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
-import { Monitor, ArrowRight, Presentation, Smartphone, Radio } from 'lucide-react';
+import { Monitor, ArrowRight, Presentation, Smartphone, Radio, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { FileMetadata } from '@/types/file';
 import { useSlideRenderer } from '@/hooks/useSlideRenderer';
@@ -43,106 +43,87 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Navbar */}
-      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 relative">
-              <NextImage 
-                src="/deckhand-logo.png" 
-                alt="DeckHand Logo" 
-                fill 
-                className="object-contain"
-              />
-            </div>
-            <span className="font-bold text-xl tracking-tight">DeckHand</span>
+    <div className="min-h-screen bg-[#09090b] text-white flex flex-col font-sans selection:bg-white/20">
+      {/* Navbar - Minimal */}
+      <header className="container mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <div className="w-8 h-8 relative">
+            <NextImage 
+              src="/deckhand-logo.png" 
+              alt="DeckHand Logo" 
+              fill 
+              className="object-contain"
+            />
           </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <Link href="/join" className="hover:text-foreground transition-colors">Join Room</Link>
-            <Link href="/remote" className="hover:text-foreground transition-colors">Remote</Link>
-            <Link href="/teleprompter" className="hover:text-foreground transition-colors">Teleprompter</Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
-              <Link href="/join">Join Existing</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/join">Get Started</Link>
-            </Button>
-          </div>
+          DeckHand
+        </div>
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+          {/* <Link href="/join" className="hover:text-white transition-colors">Join Room</Link> */}
+          <Link href="/remote" className="hover:text-white transition-colors">Remote</Link>
+          <Link href="/teleprompter" className="hover:text-white transition-colors">Teleprompter</Link>
+        </nav>
+        <div className="flex items-center gap-4">
+          {/* <Button variant="ghost" size="sm" asChild className="hidden sm:flex text-zinc-400 hover:text-white hover:bg-transparent">
+            <Link href="/join">Log in</Link>
+          </Button> */}
+          <Button size="sm" asChild className="bg-white text-black hover:bg-zinc-200 rounded-full px-6 font-medium">
+            <Link href="/join">Join Existing</Link>
+          </Button>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Left Section - Hero & Info (Golden Ratio: ~62%) */}
-        <div className="flex-1 lg:flex-[1.618] p-6 lg:p-12 flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background -z-10" />
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 -z-10" />
+      <main className="flex-1 container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-24 py-12 lg:py-0">
+        {/* Left Content - Minimalist Hero */}
+        <div className="flex-1 space-y-8 text-center lg:text-left">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+            Remote-controlled <br/>
+            <span className="text-zinc-500">Presentation Deck.</span>
+          </h1>
+          <p className="text-xl text-zinc-400 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            Show a fullscreen presentation to your audience while you control it from another device. No apps required.
+          </p>
           
-          <div className="max-w-2xl mx-auto lg:mx-0 space-y-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
-                <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
-                v2.0 Now Available
-              </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-                Control your slides <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">
-                  like a pro.
-                </span>
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-                Seamlessly control your presentations from any device. 
-                No dongles, no apps to install. Just a browser and your deck.
-              </p>
+          {/* Feature List Minimal */}
+          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 text-sm font-medium text-zinc-300 pt-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <span>Real-time Sync</span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
-              <div className="p-4 rounded-xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                <Smartphone className="w-8 h-8 text-blue-400 mb-3" />
-                <h3 className="font-semibold mb-1">Remote Control</h3>
-                <p className="text-sm text-muted-foreground">Use your phone as a clicker with notes.</p>
-              </div>
-              <div className="p-4 rounded-xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                <Radio className="w-8 h-8 text-purple-400 mb-3" />
-                <h3 className="font-semibold mb-1">Real-time Sync</h3>
-                <p className="text-sm text-muted-foreground">Instant slide changes across all devices.</p>
-              </div>
-              <div className="p-4 rounded-xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-colors">
-                <Monitor className="w-8 h-8 text-green-400 mb-3" />
-                <h3 className="font-semibold mb-1">Stage View</h3>
-                <p className="text-sm text-muted-foreground">Dedicated view for the main screen.</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <span>Speaker Notes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <span>Zero Latency</span>
             </div>
           </div>
         </div>
 
-        {/* Right Section - Action Area (Golden Ratio: ~38%) */}
-        <div className="flex-1 lg:flex-1 bg-card border-l border-border p-6 lg:p-12 flex flex-col justify-center shadow-2xl shadow-black/20 z-10">
-          <div className="max-w-md mx-auto w-full space-y-8">
-            
+        {/* Right Action Card - Clean & Solid */}
+        <div className="flex-1 w-full max-w-md lg:max-w-lg">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
             {!uploadedFile ? (
               <div className="space-y-6">
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold">Start Presenting</h2>
-                  <p className="text-muted-foreground">Upload your PDF or PPTX to create a room.</p>
+                  <p className="text-zinc-400">Upload your PDF or PPTX to create a room.</p>
                 </div>
                 
-                <div className="bg-background/50 p-1 rounded-2xl border border-border border-dashed">
+                <div className="bg-zinc-950/50 p-1 rounded-xl border border-zinc-800 border-dashed hover:border-zinc-700 transition-colors">
                   <FileUpload onFileUpload={handleFileUpload} />
                 </div>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
+                    <span className="w-full border-t border-zinc-800" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or join existing</span>
+                    <span className="bg-zinc-900 px-2 text-zinc-500">Or join existing</span>
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full h-12 text-base" asChild>
+                <Button variant="outline" className="w-full h-12 text-base border-zinc-700 hover:bg-zinc-800 hover:text-white" asChild>
                   <Link href="/join">
                     Join a Room
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -155,7 +136,7 @@ export default function Home() {
                   <h2 className="text-xl font-semibold truncate max-w-[200px]" title={uploadedFile.name}>
                     {uploadedFile.name}
                   </h2>
-                  <Button variant="ghost" size="sm" onClick={handleBackToUpload} disabled={isLoading}>
+                  <Button variant="ghost" size="sm" onClick={handleBackToUpload} disabled={isLoading} className="text-zinc-400 hover:text-white">
                     Change File
                   </Button>
                 </div>
@@ -164,18 +145,17 @@ export default function Home() {
                   <div className="space-y-6 py-8">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className="relative">
-                        <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                        <Spinner className="h-12 w-12 text-primary relative z-10" />
+                        <Spinner className="h-12 w-12 text-white relative z-10" />
                       </div>
                       <div className="text-center space-y-1">
                         <p className="font-medium">Processing Slides</p>
-                        <p className="text-sm text-muted-foreground">{Math.round(progress)}% complete</p>
+                        <p className="text-sm text-zinc-400">{Math.round(progress)}% complete</p>
                       </div>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <Progress value={progress} className="h-2 bg-zinc-800" />
                   </div>
                 ) : error ? (
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive space-y-3">
+                  <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 space-y-3">
                     <p className="font-medium">Processing Failed</p>
                     <p className="text-sm opacity-90">{error}</p>
                     <Button variant="destructive" size="sm" onClick={handleBackToUpload} className="w-full">
@@ -184,9 +164,8 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="space-y-6 py-4">
-                    <div className="aspect-video bg-background rounded-lg border border-border flex items-center justify-center relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                      <Presentation className="h-16 w-16 text-muted-foreground/50" />
+                    <div className="aspect-video bg-zinc-950 rounded-lg border border-zinc-800 flex items-center justify-center relative overflow-hidden group">
+                      <Presentation className="h-16 w-16 text-zinc-700" />
                       <div className="absolute bottom-4 left-4 text-white">
                         <p className="font-medium">{slides.length} Slides Ready</p>
                       </div>
@@ -194,7 +173,7 @@ export default function Home() {
                     
                     <Button 
                       size="lg" 
-                      className="w-full h-14 text-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all" 
+                      className="w-full h-14 text-lg bg-white text-black hover:bg-zinc-200 transition-all font-bold" 
                       onClick={handleStartPresentation}
                     >
                       Launch Presentation
