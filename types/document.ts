@@ -1,3 +1,5 @@
+import type { PPTXData, Slide } from '@kandiforge/pptx-renderer';
+
 // PDF Document Types
 export interface PDFPage {
   pageNumber: number;
@@ -29,6 +31,7 @@ export interface PPTXSlide {
   htmlContent: string;
   speakerNotes: string;
   thumbnailUrl?: string;
+  slideData?: Slide;
 }
 
 export interface PPTXDocument {
@@ -36,6 +39,11 @@ export interface PPTXDocument {
   totalSlides: number;
   fileName: string;
   fileSize: number;
+  pptxData?: PPTXData;
+  slideSize?: {
+    width: number;
+    height: number;
+  };
 }
 
 export interface PPTXParseProgress {

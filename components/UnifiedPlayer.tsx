@@ -223,6 +223,7 @@ export const UnifiedPlayer: React.FC<UnifiedPlayerProps> = ({
             document={parsedDocument as PPTXDocument} 
             onSlideChange={handlePageChange}
             className={isFullscreen ? 'h-full' : ''}
+            isFullscreen={isFullscreen}
           />
         </div>
       )}

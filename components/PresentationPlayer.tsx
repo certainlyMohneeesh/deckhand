@@ -2,17 +2,18 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PDFDocument } from '@/types/document';
 import { Button } from '@/components/ui/button';
 import { PrivacyScreen } from './PrivacyScreen';
 import { 
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown,
   Maximize, 
   Minimize,
   Grid,
   Play,
-  Pause
+  Pause,
+  GripHorizontal,
 } from 'lucide-react';
 
 interface PresentationPlayerProps {
@@ -49,10 +50,18 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
+  const [isDraggingControls, setIsDraggingControls] = useState(false);
+  const [controlsPosition, setControlsPosition] = useState({ x: 0, y: 0 });
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const controlsHandleRef = useRef<HTMLDivElement>(null);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
   const currentSlideRef = useRef(currentSlide);
+  const controlsDraggedRef = useRef(false);
+  const controlsDragOffsetRef = useRef({ x: 0, y: 0 });
+  const controlsPointerIdRef = useRef<number | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -61,25 +70,130 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
 
   const totalSlides = slides.length;
 
+  const clampControlsPosition = useCallback((x: number, y: number) => {
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    const controlsRect = controlsRef.current?.getBoundingClientRect();
+
+    if (!containerRect || !controlsRect) {
+      return { x, y };
+    }
+
+    const padding = 8;
+    const maxX = Math.max(padding, containerRect.width - controlsRect.width - padding);
+    const maxY = Math.max(padding, containerRect.height - controlsRect.height - padding);
+
+    return {
+      x: Math.min(Math.max(x, padding), maxX),
+      y: Math.min(Math.max(y, padding), maxY),
+    };
+  }, []);
+
+  const getDefaultControlsPosition = useCallback(() => {
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    const controlsRect = controlsRef.current?.getBoundingClientRect();
+
+    if (!containerRect || !controlsRect) {
+      return { x: 16, y: 16 };
+    }
+
+    const centeredX = (containerRect.width - controlsRect.width) / 2;
+    const bottomY = containerRect.height - controlsRect.height - 16;
+    return clampControlsPosition(centeredX, bottomY);
+  }, [clampControlsPosition]);
+
+  const endControlsDrag = useCallback((pointerId: number) => {
+    if (controlsPointerIdRef.current !== pointerId) {
+      return;
+    }
+
+    controlsPointerIdRef.current = null;
+    setIsDraggingControls(false);
+
+    if (controlsHandleRef.current?.hasPointerCapture(pointerId)) {
+      controlsHandleRef.current.releasePointerCapture(pointerId);
+    }
+  }, []);
+
+  const handleControlsPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) {
+      return;
+    }
+
+    controlsPointerIdRef.current = event.pointerId;
+    controlsDraggedRef.current = true;
+    setIsDraggingControls(true);
+
+    controlsDragOffsetRef.current = {
+      x: event.clientX - containerRect.left - controlsPosition.x,
+      y: event.clientY - containerRect.top - controlsPosition.y,
+    };
+
+    controlsHandleRef.current?.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }, [controlsPosition.x, controlsPosition.y]);
+
+  const handleControlsPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingControls || controlsPointerIdRef.current !== event.pointerId) {
+      return;
+    }
+
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) {
+      return;
+    }
+
+    const nextX = event.clientX - containerRect.left - controlsDragOffsetRef.current.x;
+    const nextY = event.clientY - containerRect.top - controlsDragOffsetRef.current.y;
+    setControlsPosition(clampControlsPosition(nextX, nextY));
+    event.preventDefault();
+  }, [clampControlsPosition, isDraggingControls]);
+
+  const handleControlsPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    endControlsDrag(event.pointerId);
+  }, [endControlsDrag]);
+
+  const handleControlsPointerCancel = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    endControlsDrag(event.pointerId);
+  }, [endControlsDrag]);
+
   // Sync with external slide index (from room/remote control)
   useEffect(() => {
+    let frameId: number | undefined;
+
     if (externalSlideIndex !== undefined && externalSlideIndex >= 0 && externalSlideIndex < totalSlides) {
       // Use ref to avoid stale closure
       if (externalSlideIndex !== currentSlideRef.current) {
         console.log('[PresentationPlayer] Syncing to external slide:', externalSlideIndex, 'from:', currentSlideRef.current);
-        setDirection(externalSlideIndex > currentSlideRef.current ? 1 : -1);
-        setCurrentSlide(externalSlideIndex);
+        frameId = window.requestAnimationFrame(() => {
+          setDirection(externalSlideIndex > currentSlideRef.current ? 1 : -1);
+          setCurrentSlide(externalSlideIndex);
+        });
       }
     }
+
+    return () => {
+      if (frameId !== undefined) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, [externalSlideIndex, totalSlides]);
 
   // Feature 1: Sync external controls
   // Note: Fullscreen API requires user gesture, so we update internal state
   // User can then click the fullscreen button or press 'f' key
   useEffect(() => {
+    let frameId: number | undefined;
+
     if (externalFullscreen !== undefined) {
       console.log('[PresentationPlayer] External fullscreen state:', externalFullscreen);
-      setIsFullscreen(externalFullscreen);
+      frameId = window.requestAnimationFrame(() => {
+        setIsFullscreen(externalFullscreen);
+      });
       
       // Only attempt fullscreen if we're already in fullscreen mode (for exit)
       if (!externalFullscreen && document.fullscreenElement) {
@@ -91,20 +205,46 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
       // Note: Entering fullscreen remotely not possible due to browser security
       // The internal button state will show "fullscreen requested" state
     }
+
+    return () => {
+      if (frameId !== undefined) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, [externalFullscreen]);
 
   useEffect(() => {
+    let frameId: number | undefined;
+
     if (externalAutoPlay !== undefined) {
       console.log('[PresentationPlayer] External autoPlay changed to:', externalAutoPlay);
-      setIsAutoPlaying(externalAutoPlay);
+      frameId = window.requestAnimationFrame(() => {
+        setIsAutoPlaying(externalAutoPlay);
+      });
     }
+
+    return () => {
+      if (frameId !== undefined) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, [externalAutoPlay]);
 
   useEffect(() => {
+    let frameId: number | undefined;
+
     if (externalShowOverview !== undefined) {
       console.log('[PresentationPlayer] External showOverview changed to:', externalShowOverview);
-      setShowOverview(externalShowOverview);
+      frameId = window.requestAnimationFrame(() => {
+        setShowOverview(externalShowOverview);
+      });
     }
+
+    return () => {
+      if (frameId !== undefined) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, [externalShowOverview]);
 
   // Navigation functions
@@ -127,6 +267,23 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
       goToSlide(currentSlide - 1);
     }
   }, [currentSlide, goToSlide]);
+
+  // Fullscreen handling
+  const toggleFullscreen = useCallback(async () => {
+    if (!containerRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {
@@ -166,29 +323,17 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
           e.preventDefault();
           setShowOverview(!showOverview);
           break;
+        case 'c':
+        case 'C':
+          e.preventDefault();
+          setIsControlsCollapsed(prev => !prev);
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goToNext, goToPrevious, goToSlide, totalSlides, showOverview]);
-
-  // Fullscreen handling
-  const toggleFullscreen = useCallback(async () => {
-    if (!containerRef.current) return;
-
-    try {
-      if (!document.fullscreenElement) {
-        await containerRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    } catch (err) {
-      console.error('Fullscreen error:', err);
-    }
-  }, []);
+  }, [goToNext, goToPrevious, goToSlide, showOverview, toggleFullscreen, totalSlides]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -198,6 +343,49 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  useEffect(() => {
+    const positionControls = () => {
+      setControlsPosition(currentPosition => {
+        if (!controlsDraggedRef.current) {
+          return getDefaultControlsPosition();
+        }
+        return clampControlsPosition(currentPosition.x, currentPosition.y);
+      });
+    };
+
+    const frameId = window.requestAnimationFrame(positionControls);
+
+    const containerElement = containerRef.current;
+    if (!containerElement) {
+      return () => window.cancelAnimationFrame(frameId);
+    }
+
+    const observer = new ResizeObserver(() => {
+      positionControls();
+    });
+
+    observer.observe(containerElement);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      observer.disconnect();
+    };
+  }, [clampControlsPosition, getDefaultControlsPosition, isControlsCollapsed, isFullscreen]);
+
+  useEffect(() => {
+    const handleWindowResize = () => {
+      setControlsPosition(currentPosition => {
+        if (!controlsDraggedRef.current) {
+          return getDefaultControlsPosition();
+        }
+        return clampControlsPosition(currentPosition.x, currentPosition.y);
+      });
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [clampControlsPosition, getDefaultControlsPosition]);
 
   // Auto-play functionality
   useEffect(() => {
@@ -368,89 +556,134 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
         />
       </div>
 
-      {/* Controls Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 z-20">
+      {/* Draggable + Collapsible Controls Overlay */}
+      <div
+        ref={controlsRef}
+        className="absolute z-30"
+        style={{ left: controlsPosition.x, top: controlsPosition.y }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-center gap-2 p-4"
+          className="rounded-2xl border border-white/10 bg-black/80 p-2 backdrop-blur-sm"
         >
-          <div className="flex items-center gap-2 bg-black/80 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goToPrevious}
-              disabled={currentSlide === 0}
-              className="text-white hover:bg-white/20 h-8 w-8"
+          <div className="flex items-center gap-2">
+            <div
+              ref={controlsHandleRef}
+              role="button"
+              tabIndex={0}
+              aria-label="Drag presentation controls"
+              className={`flex items-center gap-1 rounded-md px-2 py-1 text-white/80 touch-none ${
+                isDraggingControls ? 'cursor-grabbing' : 'cursor-grab'
+              }`}
+              onPointerDown={handleControlsPointerDown}
+              onPointerMove={handleControlsPointerMove}
+              onPointerUp={handleControlsPointerUp}
+              onPointerCancel={handleControlsPointerCancel}
             >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+              <GripHorizontal className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium">Move</span>
+            </div>
 
-            <span className="text-white text-sm font-medium min-w-[60px] text-center">
+            <span className="text-white text-sm font-medium min-w-[60px] text-center" aria-live="polite">
               {currentSlide + 1} / {totalSlides}
             </span>
 
             <Button
               variant="ghost"
               size="icon"
-              onClick={goToNext}
-              disabled={currentSlide === totalSlides - 1}
+              onClick={() => setIsControlsCollapsed(prev => !prev)}
               className="text-white hover:bg-white/20 h-8 w-8"
+              title={isControlsCollapsed ? 'Expand controls (C)' : 'Collapse controls (C)'}
+              aria-expanded={!isControlsCollapsed}
             >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            <div className="w-px h-4 bg-white/20" />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-              className="text-white hover:bg-white/20 h-8 w-8"
-              title={isAutoPlaying ? 'Pause' : 'Auto-play'}
-            >
-              {isAutoPlaying ? (
-                <Pause className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowOverview(true)}
-              className="text-white hover:bg-white/20 h-8 w-8"
-              title="Slide Overview (G)"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleFullscreen}
-              className="text-white hover:bg-white/20 h-8 w-8"
-              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen (F)'}
-            >
-              {isFullscreen ? (
-                <Minimize className="h-4 w-4" />
-              ) : (
-                <Maximize className="h-4 w-4" />
-              )}
+              <ChevronDown className={`h-4 w-4 transition-transform ${isControlsCollapsed ? 'rotate-180' : ''}`} />
             </Button>
           </div>
-        </motion.div>
 
-        {/* Progress Bar */}
-        <div className="h-1 bg-white/10">
-          <motion.div
-            className="h-full bg-primary"
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
+          <AnimatePresence initial={false}>
+            {!isControlsCollapsed && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToPrevious}
+                    disabled={currentSlide === 0}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToNext}
+                    disabled={currentSlide === totalSlides - 1}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+
+                  <div className="mx-1 w-px h-4 bg-white/20" />
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                    title={isAutoPlaying ? 'Pause' : 'Auto-play'}
+                  >
+                    {isAutoPlaying ? (
+                      <Pause className="h-4 w-4" />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowOverview(true)}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                    title="Slide Overview (G)"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleFullscreen}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                    title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen (F)'}
+                  >
+                    {isFullscreen ? (
+                      <Minimize className="h-4 w-4" />
+                    ) : (
+                      <Maximize className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/10">
+        <motion.div
+          className="h-full bg-primary"
+          initial={{ width: 0 }}
+          animate={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}
+          transition={{ duration: 0.3 }}
+        />
       </div>
 
       {/* Keyboard shortcut hint */}
